@@ -20,9 +20,11 @@ from sdl.model import Attestation, ComputationalProfile, ValidationResult
 # Maps SDL physical type URIs to sets of acceptable Arrow type strings.
 # Multiple Arrow representations can satisfy a single SDL type.
 SDL_TO_ARROW_TYPES: dict[str, set[str]] = {
+    "sdl:Boolean": {"bool"},
     "sdl:Integer": {"int32"},
     "sdl:BigInt": {"int64"},
     "sdl:UBigInt": {"uint64"},
+    "sdl:Float": {"float", "float32"},
     "sdl:Double": {"double", "float64"},
     "sdl:Varchar": {"string", "utf8", "large_string", "large_utf8"},
     "sdl:Date": {"date32[day]", "date32"},

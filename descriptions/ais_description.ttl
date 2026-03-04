@@ -233,6 +233,8 @@ ais:DailyBroadcasts a sdl:Dataset ;
         position reports from NOAA Marine Cadastre. Denormalized: includes
         static vessel data (name, IMO, dimensions) merged with position
         reports. Ordered by MMSI then timestamp within each file.""" ;
+    sdl:rowSemantics sdl:EventRow ;
+    sdl:schemaStability sdl:FixedSchema ;
 
     # --- Columns ---
     sdl:hasColumn
@@ -450,14 +452,14 @@ ais:derive_h3 a sdl:Derivation ;
 # --- Physical layout ---
 
 ais:bc_layout a sdl:PhysicalLayout ;
-    sdl:fileFormat "parquet" ;
+    sdl:fileFormat sdl:Parquet ;
     sdl:hasRowOrdering ais:bc_ordering .
 
 ais:bc_ordering a sdl:RowOrdering ;
     sdl:hasOrderingKey [
         a sdl:OrderingKey ;
         sdl:keyColumn ais:bc_mmsi ;
-        sdl:keyDirection "ascending" ;
+        sdl:keyDirection sdl:Ascending ;
         sdl:keyPrecedence 1 ;
         sdl:orderingSemantic sdl:ClusteringForIndex ;
         rdfs:comment """Primary sort by MMSI clusters all broadcasts for a
@@ -469,7 +471,7 @@ ais:bc_ordering a sdl:RowOrdering ;
     sdl:hasOrderingKey [
         a sdl:OrderingKey ;
         sdl:keyColumn ais:bc_timestamp ;
-        sdl:keyDirection "ascending" ;
+        sdl:keyDirection sdl:Ascending ;
         sdl:keyPrecedence 2 ;
         sdl:orderingSemantic sdl:MeaningfulSequence ;
         rdfs:comment """Within each MMSI cluster, broadcasts are in
@@ -484,7 +486,7 @@ ais:bc_ordering a sdl:RowOrdering ;
 
 ais:daily_date_partition a sdl:PartitionScheme ;
     sdl:partitionColumn ais:bc_date ;
-    sdl:partitionGranularity "daily" ;
+    sdl:partitionGranularity sdl:Daily ;
     sdl:pathTemplate "broadcasts/{year}/ais-{date}.parquet" ;
     sdl:redundantPartitionKey ais:bc_date ;
     rdfs:comment """One file per UTC day. The 'date' column in each file is
@@ -543,6 +545,8 @@ ais:DailyIndex a sdl:Dataset ;
     rdfs:comment """One Parquet file per day, one row per MMSI observed that
         day. Summarises the broadcast data for quick vessel-level queries
         across the full time range.""" ;
+    sdl:rowSemantics sdl:AggregateRow ;
+    sdl:schemaStability sdl:FixedSchema ;
 
     sdl:hasColumn
         ais:ix_mmsi ,
@@ -577,7 +581,7 @@ ais:DailyIndex a sdl:Dataset ;
     sdl:partitionedBy ais:daily_date_partition ;
     sdl:hasPhysicalLayout [
         a sdl:PhysicalLayout ;
-        sdl:fileFormat "parquet"
+        sdl:fileFormat sdl:Parquet
     ] .
 
 # Companion relationship
@@ -991,7 +995,7 @@ ais:deficiency_missing_positions a sdl:KnownDeficiency ;
     sdl:impact """Distance and duration calculations will underestimate true
         values. Speed calculations between widely-spaced messages may not
         reflect actual vessel behavior.""" ;
-    sdl:severity "moderate" .
+    sdl:severity sdl:Moderate .
 
 ais:deficiency_denormalized a sdl:KnownDeficiency ;
     sdl:deficiencyDescription """Static vessel data is denormalized into position
@@ -1000,7 +1004,7 @@ ais:deficiency_denormalized a sdl:KnownDeficiency ;
     sdl:impact """Static fields in any single row may be stale or from a
         different time than the position report. The index file's distinct
         lists mitigate this by preserving all observed values.""" ;
-    sdl:severity "minor" .
+    sdl:severity sdl:Minor .
 
 ais:deficiency_mmsi_identity a sdl:KnownDeficiency ;
     sdl:deficiencyDescription """MMSI does not reliably identify a single vessel.
@@ -1009,4 +1013,4 @@ ais:deficiency_mmsi_identity a sdl:KnownDeficiency ;
     sdl:impact """Grouping by MMSI may conflate different vessels. The
         max_inter_msg_speed_ms index column can flag likely cases (an
         implausibly high implied speed suggests MMSI reuse).""" ;
-    sdl:severity "moderate" .
+    sdl:severity sdl:Moderate .

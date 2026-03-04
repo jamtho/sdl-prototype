@@ -142,7 +142,7 @@ class Attestation:
             f'    sdl:verifiedConstraint <{self.constraint_uri}> ;',
             f'    sdl:verifiedDataset <{self.dataset_uri}> ;',
             f'    sdl:verificationTime "{self.timestamp.isoformat()}"^^xsd:dateTime ;',
-            f'    sdl:verificationResult "{self.result.value}" ;',
+            f'    sdl:verificationResult sdl:{self.result.value.capitalize()} ;',
         ]
         if self.file_path:
             lines.append(f'    sdl:verifiedFile "{self.file_path}" ;')

@@ -1,5 +1,7 @@
 # SDL Vocabulary Evolution: Lessons from Polymarket
 
+*2026-03-04 (1 of 2)*
+
 How modelling a prediction-market data store surfaced gaps in the original SDL vocabulary, and the extensions that resolved them.
 
 ## Background

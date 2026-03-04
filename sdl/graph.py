@@ -59,6 +59,18 @@ def _lit_str(node: Node | None) -> str:
     return str(node)
 
 
+def _label_or_str(g: Graph, node: Node | None) -> str:
+    """For named individuals, return rdfs:label; for literals, return the value."""
+    if node is None:
+        return ""
+    if isinstance(node, Literal):
+        return str(node)
+    label = g.value(node, RDFS.label)
+    if label is not None:
+        return str(label)
+    return _str(node)
+
+
 def _lit_bool(node: Node | None) -> bool:
     """Extract a boolean, defaulting to True for nullable."""
     if node is None:
@@ -149,7 +161,7 @@ class SDLGraph:
         for key_node in self.g.objects(ordering, SDL.hasOrderingKey):
             col_ref = self.g.value(key_node, SDL.keyColumn)
             col_name = _lit_str(self.g.value(col_ref, SDL.columnName)) if col_ref else ""
-            direction = _lit_str(self.g.value(key_node, SDL.keyDirection))
+            direction = _label_or_str(self.g, self.g.value(key_node, SDL.keyDirection))
             precedence_lit = self.g.value(key_node, SDL.keyPrecedence)
             precedence = int(precedence_lit) if precedence_lit else 99
             semantic = _str(self.g.value(key_node, SDL.orderingSemantic))
@@ -163,11 +175,11 @@ class SDLGraph:
     def _get_layout(self, dataset: URIRef) -> tuple[str, str | None, str | None, str | None]:
         """Extract physical layout info: format, path template, granularity, redundant key."""
         layout = self.g.value(dataset, SDL.hasPhysicalLayout)
-        file_format = _lit_str(self.g.value(layout, SDL.fileFormat)) if layout else "parquet"
+        file_format = _label_or_str(self.g, self.g.value(layout, SDL.fileFormat)) if layout else "Parquet"
 
         partition = self.g.value(dataset, SDL.partitionedBy)
         path_template = _lit_str(self.g.value(partition, SDL.pathTemplate)) if partition else None
-        granularity = _lit_str(self.g.value(partition, SDL.partitionGranularity)) if partition else None
+        granularity = _label_or_str(self.g, self.g.value(partition, SDL.partitionGranularity)) if partition else None
 
         redundant_key: str | None = None
         if partition:
@@ -312,7 +324,7 @@ class SDLGraph:
             deficiencies.append({
                 "description": _lit_str(self.g.value(d_node, SDL.deficiencyDescription)),
                 "impact": _lit_str(self.g.value(d_node, SDL.impact)),
-                "severity": _lit_str(self.g.value(d_node, SDL.severity)),
+                "severity": _label_or_str(self.g, self.g.value(d_node, SDL.severity)),
             })
         return deficiencies
 

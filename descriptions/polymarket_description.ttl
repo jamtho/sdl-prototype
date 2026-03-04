@@ -235,7 +235,9 @@ pm:MarketSnapshots a sdl:Dataset ;
         the Gamma API. ~33,500 markets per snapshot, polled every 5 minutes,
         compacted hourly. Richest schema (~30+ columns).""" ;
 
+    sdl:rowSemantics sdl:SnapshotRow ;
     sdl:entityKey pm:mkt_id ;
+    sdl:snapshotTimestamp pm:mkt_fetched_at ;
     sdl:schemaStability sdl:InferredSchema ;
 
     sdl:hasColumn
@@ -338,7 +340,7 @@ pm:mkt_outcomes a sdl:Column ;
     rdfs:comment "JSON-encoded array of outcome labels, e.g. '[\"Yes\",\"No\"]'." ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<string>"
     ] .
 
@@ -352,7 +354,7 @@ pm:mkt_outcome_prices a sdl:Column ;
         column — triple indirection.""" ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<string>" ;
         rdfs:comment "Inner strings are probability floats (0.0-1.0)."
     ] .
@@ -366,7 +368,7 @@ pm:mkt_clob_token_ids a sdl:Column ;
         outcomes. Links to clob/prices.token_id and clob/books.asset_id.""" ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<string>" ;
         rdfs:comment "Inner strings are CLOBTokenId values."
     ] .
@@ -556,7 +558,9 @@ pm:EventSnapshots a sdl:Dataset ;
         ~7,900 events per snapshot. Each event groups one or more related
         markets.""" ;
 
+    sdl:rowSemantics sdl:SnapshotRow ;
     sdl:entityKey pm:evt_id ;
+    sdl:snapshotTimestamp pm:evt_fetched_at ;
     sdl:schemaStability sdl:InferredSchema ;
 
     sdl:hasColumn
@@ -695,7 +699,7 @@ pm:evt_markets a sdl:Column ;
         contains a subset of the gamma/markets fields (~20 fields).""" ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<{id, question, conditionId, slug, outcomes, volume, ...}>" ;
         rdfs:comment "Each element is a market object mirroring gamma/markets fields."
     ] .
@@ -718,7 +722,9 @@ pm:PriceSnapshots a sdl:Dataset ;
         ~2,000 tokens polled every 30 seconds. Merges /price and /midpoint
         endpoints.""" ;
 
+    sdl:rowSemantics sdl:SnapshotRow ;
     sdl:entityKey pm:px_token_id ;
+    sdl:snapshotTimestamp pm:px_fetched_at ;
     sdl:schemaStability sdl:InferredSchema ;
 
     sdl:hasColumn
@@ -784,7 +790,9 @@ pm:OrderbookSnapshots a sdl:Dataset ;
     rdfs:comment """Hourly snapshots of orderbook state for top 100 active
         tokens. Polled every 2 minutes.""" ;
 
+    sdl:rowSemantics sdl:SnapshotRow ;
     sdl:entityKey pm:ob_asset_id ;
+    sdl:snapshotTimestamp pm:ob_fetched_at ;
     sdl:schemaStability sdl:InferredSchema ;
 
     sdl:hasColumn
@@ -858,7 +866,7 @@ pm:ob_bids a sdl:Column ;
     rdfs:comment """JSON array of bid levels.""" ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<{price: string, size: string}>"
     ] .
 
@@ -870,7 +878,7 @@ pm:ob_asks a sdl:Column ;
     rdfs:comment """JSON array of ask levels.""" ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<{price: string, size: string}>"
     ] .
 
@@ -909,6 +917,7 @@ pm:Trades a sdl:Dataset ;
         datasets. Rows are in API response order (roughly reverse
         chronological), not meaningfully sorted.""" ;
 
+    sdl:rowSemantics sdl:EventRow ;
     sdl:schemaStability sdl:InferredSchema ;
 
     sdl:hasColumn
@@ -1073,8 +1082,10 @@ pm:HolderSnapshots a sdl:Dataset ;
         known markets. Polled every 10 minutes. Snapshot semantics keyed
         by (condition_id, token) — composite entity key.""" ;
 
+    sdl:rowSemantics sdl:SnapshotRow ;
     sdl:entityKey pm:hld_condition_id ;
     sdl:entityKey pm:hld_token ;
+    sdl:snapshotTimestamp pm:hld_fetched_at ;
     sdl:schemaStability sdl:InferredSchema ;
 
     sdl:hasColumn
@@ -1128,7 +1139,7 @@ pm:hld_holders a sdl:Column ;
     rdfs:comment "JSON-serialized array of holder objects." ;
     sdl:embeddedStructure [
         a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat "json" ;
+        sdl:embeddedFormat sdl:JSONEncoding ;
         sdl:embeddedElementType "array<{proxyWallet: string, name: string, pseudonym: string, asset: string, amount: float, outcomeIndex: int, displayUsernamePublic: bool, verified: bool}>"
     ] .
 
@@ -1237,7 +1248,7 @@ pm:FetcherConditionIdEnrichment a rdfs:Resource ;
 # --- Physical layout (shared by all datasets) ---
 
 pm:snapshot_layout a sdl:PhysicalLayout ;
-    sdl:fileFormat "parquet" ;
+    sdl:fileFormat sdl:Parquet ;
     rdfs:comment """All datasets use zstd-compressed Parquet files with no
         meaningful row ordering. Rows arrive in API poll order.
         No hasRowOrdering declared — rows are in arrival/poll order
@@ -1256,14 +1267,14 @@ pm:hourly_hive_partition a sdl:CompositePartitionScheme ;
         a sdl:PartitionLevel ;
         sdl:levelPrecedence 1 ;
         sdl:levelColumn "dt" ;
-        sdl:levelGranularity "daily"
+        sdl:levelGranularity sdl:Daily
     ] ;
 
     sdl:hasPartitionLevel [
         a sdl:PartitionLevel ;
         sdl:levelPrecedence 2 ;
         sdl:levelColumn "hour" ;
-        sdl:levelGranularity "hourly"
+        sdl:levelGranularity sdl:Hourly
     ] .
 
 
@@ -1335,7 +1346,7 @@ pm:deficiency_schema_inferred a sdl:KnownDeficiency ;
         Query code should use permissive schema handling and type coercion.
         New columns may appear without notice when Polymarket updates
         their API responses.""" ;
-    sdl:severity "moderate" .
+    sdl:severity sdl:Moderate .
 
 pm:deficiency_snapshot_dedup a sdl:KnownDeficiency ;
     sdl:deficiencyDescription """Snapshot datasets (markets, events, prices,
@@ -1346,7 +1357,7 @@ pm:deficiency_snapshot_dedup a sdl:KnownDeficiency ;
     sdl:impact """Consumers must deduplicate by entity key + _fetched_at to
         get point-in-time snapshots, or take the latest _fetched_at per
         entity for the most recent state.""" ;
-    sdl:severity "moderate" .
+    sdl:severity sdl:Moderate .
 
 pm:deficiency_json_in_strings a sdl:KnownDeficiency ;
     sdl:deficiencyDescription """Several columns store structured data as JSON
@@ -1358,7 +1369,7 @@ pm:deficiency_json_in_strings a sdl:KnownDeficiency ;
     sdl:impact """Consumers must parse JSON from these string columns before
         use. This prevents Parquet-level type checking and pushdown
         predicates on nested fields.""" ;
-    sdl:severity "minor" .
+    sdl:severity sdl:Minor .
 
 pm:deficiency_mixed_type_price a sdl:KnownDeficiency ;
     sdl:deficiencyDescription """The 'price' column in clob/prices may contain
@@ -1369,7 +1380,7 @@ pm:deficiency_mixed_type_price a sdl:KnownDeficiency ;
     sdl:impact """Price analysis must filter for valid float values. Rows with
         error objects will appear as null after type coercion, or as strings
         if the column was inferred as Varchar for that batch.""" ;
-    sdl:severity "moderate" .
+    sdl:severity sdl:Moderate .
 
 pm:deficiency_duplicate_trades a sdl:KnownDeficiency ;
     sdl:deficiencyDescription """The trades dataset may contain duplicate trades
@@ -1378,7 +1389,7 @@ pm:deficiency_duplicate_trades a sdl:KnownDeficiency ;
         seconds, so overlapping windows produce duplicates.""" ;
     sdl:impact """Consumers should deduplicate by transactionHash (which is
         unique per on-chain trade) before aggregation.""" ;
-    sdl:severity "moderate" .
+    sdl:severity sdl:Moderate .
 
 
 # =============================================================================
@@ -1389,7 +1400,7 @@ pm:fk_trades_to_markets a sdl:ForeignKey ;
     rdfs:label "Trades → Markets (via conditionId)" ;
     sdl:foreignKeyFrom pm:tr_condition_id ;
     sdl:foreignKeyTo pm:mkt_condition_id ;
-    sdl:referentialIntegrity "partial" ;
+    sdl:referentialIntegrity sdl:PartialIntegrity ;
     rdfs:comment """Trade conditionId references the market's on-chain condition
         ID. Partial integrity: some trades may reference markets no longer
         in active snapshots (resolved markets drop out of the poll).""" .
@@ -1398,21 +1409,21 @@ pm:fk_trades_to_prices a sdl:ForeignKey ;
     rdfs:label "Trades → Prices (via asset/token_id)" ;
     sdl:foreignKeyFrom pm:tr_asset ;
     sdl:foreignKeyTo pm:px_token_id ;
-    sdl:referentialIntegrity "partial" ;
+    sdl:referentialIntegrity sdl:PartialIntegrity ;
     rdfs:comment "Trade asset references the CLOB token ID in price snapshots." .
 
 pm:fk_holders_to_markets a sdl:ForeignKey ;
     rdfs:label "Holders → Markets (via condition_id)" ;
     sdl:foreignKeyFrom pm:hld_condition_id ;
     sdl:foreignKeyTo pm:mkt_condition_id ;
-    sdl:referentialIntegrity "partial" ;
+    sdl:referentialIntegrity sdl:PartialIntegrity ;
     rdfs:comment "Holder condition_id references the market's condition ID." .
 
 pm:fk_books_to_markets a sdl:ForeignKey ;
     rdfs:label "Books → Markets (via market/conditionId)" ;
     sdl:foreignKeyFrom pm:ob_market ;
     sdl:foreignKeyTo pm:mkt_condition_id ;
-    sdl:referentialIntegrity "partial" ;
+    sdl:referentialIntegrity sdl:PartialIntegrity ;
     rdfs:comment "Orderbook market field references the market's condition ID." .
 
 

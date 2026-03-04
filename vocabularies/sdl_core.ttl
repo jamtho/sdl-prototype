@@ -2,7 +2,6 @@
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
@@ -23,6 +22,8 @@
 #      are themselves recorded in the graph.
 #   3. Physical and logical are both first-class: storage layout (ordering,
 #      partitioning, file format) carries semantic weight and is expressible.
+#   4. Named individuals over string literals: structural enumerations use
+#      URI-identified individuals for queryability and typo safety.
 # =============================================================================
 
 
@@ -72,8 +73,8 @@ sdl:columnName a rdf:Property ;
 sdl:physicalType a rdf:Property ;
     rdfs:domain sdl:Column ;
     rdfs:range sdl:PhysicalType ;
-    rdfs:comment """The expected storage-level type (e.g. Parquet logical type).
-        Validators can check actual file metadata against this declaration.""" .
+    rdfs:comment """The expected storage-level type. Validators can check
+        actual file metadata against this declaration.""" .
 
 sdl:semanticType a rdf:Property ;
     rdfs:domain sdl:Column ;
@@ -112,18 +113,20 @@ sdl:memberRole a rdf:Property ;
 # 2. Physical Types
 # -----------------------------------------------------------------------------
 #
-# These correspond to storage-format types (Parquet logical types, etc.).
-# The point is to catch mismatches between declared and actual types —
-# e.g. MMSI stored as VARCHAR when it should be INTEGER.
+# Storage-level data types. Named using DuckDB conventions (which map
+# directly to Parquet logical types). The point is to catch mismatches
+# between declared and actual types — e.g. MMSI stored as VARCHAR when
+# it should be INTEGER.
 # -----------------------------------------------------------------------------
 
 sdl:PhysicalType a rdfs:Class ;
     rdfs:comment "A storage-level data type." .
 
-# Parquet logical types
+sdl:Boolean       a sdl:PhysicalType ; rdfs:label "BOOLEAN" .
 sdl:Integer       a sdl:PhysicalType ; rdfs:label "INTEGER" .
 sdl:BigInt        a sdl:PhysicalType ; rdfs:label "BIGINT" .
 sdl:UBigInt       a sdl:PhysicalType ; rdfs:label "UBIGINT" .
+sdl:Float         a sdl:PhysicalType ; rdfs:label "FLOAT" .
 sdl:Double        a sdl:PhysicalType ; rdfs:label "DOUBLE" .
 sdl:Varchar       a sdl:PhysicalType ; rdfs:label "VARCHAR" .
 sdl:Date          a sdl:PhysicalType ; rdfs:label "DATE" .
@@ -141,6 +144,7 @@ sdl:narrowerThan a rdf:Property ;
 
 sdl:Integer sdl:narrowerThan sdl:BigInt .
 sdl:BigInt  sdl:narrowerThan sdl:Double .
+sdl:Float   sdl:narrowerThan sdl:Double .
 
 
 # -----------------------------------------------------------------------------
@@ -200,36 +204,43 @@ sdl:Constraint a rdfs:Class ;
 # What does the constraint apply to?
 
 sdl:appliesToDataset a rdf:Property ;
+    rdfs:domain sdl:Constraint ;
     rdfs:range sdl:Dataset .
 
 sdl:appliesToColumn a rdf:Property ;
+    rdfs:domain sdl:Constraint ;
     rdfs:range sdl:Column .
 
 sdl:appliesToColumnGroup a rdf:Property ;
+    rdfs:domain sdl:Constraint ;
     rdfs:range sdl:ColumnGroup .
 
 # --- Constraint signatures ---
 # What kind of input does the constraint operate on?
 
-sdl:ConstraintSignature a rdfs:Class .
-
-sdl:ScalarConstraint rdfs:subClassOf sdl:Constraint ;
+sdl:ScalarConstraint a rdfs:Class ;
+    rdfs:subClassOf sdl:Constraint ;
     rdfs:comment "Constraint on individual scalar values." .
 
-sdl:PairConstraint rdfs:subClassOf sdl:Constraint ;
+sdl:PairConstraint a rdfs:Class ;
+    rdfs:subClassOf sdl:Constraint ;
     rdfs:comment "Constraint on pairs/tuples of values from multiple columns." .
 
-sdl:SequenceConstraint rdfs:subClassOf sdl:Constraint ;
+sdl:SequenceConstraint a rdfs:Class ;
+    rdfs:subClassOf sdl:Constraint ;
     rdfs:comment "Constraint on an ordered sequence of values." .
 
-sdl:WindowedSequenceConstraint rdfs:subClassOf sdl:Constraint ;
+sdl:WindowedSequenceConstraint a rdfs:Class ;
+    rdfs:subClassOf sdl:Constraint ;
     rdfs:comment """Constraint on sliding windows over an ordered sequence
         (e.g. consecutive pairs).""" .
 
-sdl:DatasetConstraint rdfs:subClassOf sdl:Constraint ;
+sdl:DatasetConstraint a rdfs:Class ;
+    rdfs:subClassOf sdl:Constraint ;
     rdfs:comment "Constraint on a dataset as a whole." .
 
-sdl:GroupedConstraint rdfs:subClassOf sdl:Constraint ;
+sdl:GroupedConstraint a rdfs:Class ;
+    rdfs:subClassOf sdl:Constraint ;
     rdfs:comment "Constraint that applies within groups defined by a key." .
 
 # --- Combinators ---
@@ -302,9 +313,15 @@ sdl:computationalProfile a rdf:Property ;
 # --- Validators ---
 
 sdl:Validator a rdfs:Class .
-sdl:PythonValidator rdfs:subClassOf sdl:Validator .
-sdl:SPARQLValidator rdfs:subClassOf sdl:Validator .
-sdl:DuckDBValidator rdfs:subClassOf sdl:Validator .
+
+sdl:PythonValidator a rdfs:Class ;
+    rdfs:subClassOf sdl:Validator .
+
+sdl:SPARQLValidator a rdfs:Class ;
+    rdfs:subClassOf sdl:Validator .
+
+sdl:DuckDBValidator a rdfs:Class ;
+    rdfs:subClassOf sdl:Validator .
 
 sdl:validator a rdf:Property ;
     rdfs:domain sdl:Constraint ;
@@ -441,8 +458,17 @@ sdl:hasPhysicalLayout a rdf:Property ;
 
 sdl:fileFormat a rdf:Property ;
     rdfs:domain sdl:PhysicalLayout ;
-    rdfs:range xsd:string ;
-    rdfs:comment "E.g. 'parquet', 'csv', 'orc'." .
+    rdfs:range sdl:FileFormat ;
+    rdfs:comment "The storage file format." .
+
+# --- File format individuals ---
+
+sdl:FileFormat a rdfs:Class ;
+    rdfs:comment "A storage file format." .
+
+sdl:Parquet a sdl:FileFormat ; rdfs:label "Parquet" .
+sdl:CSV     a sdl:FileFormat ; rdfs:label "CSV" .
+sdl:ORC     a sdl:FileFormat ; rdfs:label "ORC" .
 
 # --- Row ordering ---
 
@@ -462,8 +488,8 @@ sdl:keyColumn a rdf:Property ;
 
 sdl:keyDirection a rdf:Property ;
     rdfs:domain sdl:OrderingKey ;
-    rdfs:range xsd:string ;
-    rdfs:comment "Either 'ascending' or 'descending'." .
+    rdfs:range sdl:SortDirection ;
+    rdfs:comment "The sort direction of this ordering key." .
 
 sdl:keyPrecedence a rdf:Property ;
     rdfs:domain sdl:OrderingKey ;
@@ -475,6 +501,16 @@ sdl:orderingSemantic a rdf:Property ;
     rdfs:range sdl:OrderingSemanticType ;
     rdfs:comment """Why this ordering exists. Distinguishes 'clustering for
         index efficiency' from 'meaningful temporal sequence'.""" .
+
+# --- Sort direction individuals ---
+
+sdl:SortDirection a rdfs:Class ;
+    rdfs:comment "Direction of a sort key." .
+
+sdl:Ascending  a sdl:SortDirection ; rdfs:label "ascending" .
+sdl:Descending a sdl:SortDirection ; rdfs:label "descending" .
+
+# --- Ordering semantic individuals ---
 
 sdl:OrderingSemanticType a rdfs:Class .
 sdl:ClusteringForIndex a sdl:OrderingSemanticType ;
@@ -495,8 +531,8 @@ sdl:partitionColumn a rdf:Property ;
 
 sdl:partitionGranularity a rdf:Property ;
     rdfs:domain sdl:PartitionScheme ;
-    rdfs:range xsd:string ;
-    rdfs:comment "E.g. 'daily', 'monthly', 'by_value'." .
+    rdfs:range sdl:TemporalGranularity ;
+    rdfs:comment "The temporal granularity of the partition." .
 
 sdl:pathTemplate a rdf:Property ;
     rdfs:domain sdl:PartitionScheme ;
@@ -510,6 +546,17 @@ sdl:redundantPartitionKey a rdf:Property ;
     rdfs:comment """A column embedded in the data whose value is constant
         within each partition and matches the partition value.
         Exists for query convenience.""" .
+
+# --- Temporal granularity individuals ---
+
+sdl:TemporalGranularity a rdfs:Class ;
+    rdfs:comment "Granularity of a temporal partition or level." .
+
+sdl:Daily   a sdl:TemporalGranularity ; rdfs:label "daily" .
+sdl:Hourly  a sdl:TemporalGranularity ; rdfs:label "hourly" .
+sdl:Monthly a sdl:TemporalGranularity ; rdfs:label "monthly" .
+sdl:ByValue a sdl:TemporalGranularity ; rdfs:label "by_value" ;
+    rdfs:comment "Partitioned by distinct values, not by time period." .
 
 
 # -----------------------------------------------------------------------------
@@ -573,8 +620,17 @@ sdl:impact a rdf:Property ;
 
 sdl:severity a rdf:Property ;
     rdfs:domain sdl:KnownDeficiency ;
-    rdfs:range xsd:string ;
-    rdfs:comment "E.g. 'minor', 'moderate', 'severe'." .
+    rdfs:range sdl:SeverityLevel ;
+    rdfs:comment "How severe the deficiency is." .
+
+# --- Severity level individuals ---
+
+sdl:SeverityLevel a rdfs:Class ;
+    rdfs:comment "Severity of a known deficiency." .
+
+sdl:Minor    a sdl:SeverityLevel ; rdfs:label "minor" .
+sdl:Moderate a sdl:SeverityLevel ; rdfs:label "moderate" .
+sdl:Severe   a sdl:SeverityLevel ; rdfs:label "severe" .
 
 
 # -----------------------------------------------------------------------------
@@ -605,8 +661,8 @@ sdl:verificationTime a rdf:Property ;
 
 sdl:verificationResult a rdf:Property ;
     rdfs:domain sdl:VerificationAttestation ;
-    rdfs:range xsd:string ;
-    rdfs:comment "E.g. 'pass', 'fail', 'partial', 'error'." .
+    rdfs:range sdl:VerificationResultValue ;
+    rdfs:comment "The outcome of the verification run." .
 
 sdl:verificationTool a rdf:Property ;
     rdfs:domain sdl:VerificationAttestation ;
@@ -616,6 +672,16 @@ sdl:verificationDetails a rdf:Property ;
     rdfs:domain sdl:VerificationAttestation ;
     rdfs:range xsd:string ;
     rdfs:comment "Detailed output, error messages, statistics." .
+
+# --- Verification result individuals ---
+
+sdl:VerificationResultValue a rdfs:Class ;
+    rdfs:comment "Outcome of a verification run." .
+
+sdl:Pass    a sdl:VerificationResultValue ; rdfs:label "pass" .
+sdl:Fail    a sdl:VerificationResultValue ; rdfs:label "fail" .
+sdl:Partial a sdl:VerificationResultValue ; rdfs:label "partial" .
+sdl:Error   a sdl:VerificationResultValue ; rdfs:label "error" .
 
 
 # -----------------------------------------------------------------------------
@@ -669,13 +735,36 @@ sdl:allowedValue a rdf:Property ;
 
 
 # -----------------------------------------------------------------------------
-# 12. Snapshot / Entity Key Semantics
+# 12. Row Semantics and Snapshot / Entity Key
 # -----------------------------------------------------------------------------
 #
-# Declares that a dataset represents temporal snapshots of entities
-# identified by a key column. Each row is a point-in-time observation
-# of an entity, not an independent event.
+# Declares what each row represents (event, snapshot, aggregate) and,
+# for snapshot datasets, which columns identify the entity and the
+# point in time.
 # -----------------------------------------------------------------------------
+
+sdl:rowSemantics a rdf:Property ;
+    rdfs:domain sdl:Dataset ;
+    rdfs:range sdl:RowSemanticsType ;
+    rdfs:comment """What each row in this dataset represents. Affects how
+        consumers should interpret duplicates, ordering, and grouping.""" .
+
+sdl:RowSemanticsType a rdfs:Class ;
+    rdfs:comment "The semantic meaning of a single row." .
+
+sdl:EventRow a sdl:RowSemanticsType ;
+    rdfs:comment """Each row is an independent event or observation. Rows are
+        not expected to share identity keys.""" .
+
+sdl:SnapshotRow a sdl:RowSemanticsType ;
+    rdfs:comment """Each row is a point-in-time observation of a recurring
+        entity. The same entity appears in multiple rows across time.
+        Datasets with snapshot rows should declare sdl:entityKey and
+        sdl:snapshotTimestamp.""" .
+
+sdl:AggregateRow a sdl:RowSemanticsType ;
+    rdfs:comment """Each row summarises a group of source rows. Typically
+        produced by grouping and aggregation from a source dataset.""" .
 
 sdl:entityKey a rdf:Property ;
     rdfs:domain sdl:Dataset ;
@@ -683,8 +772,16 @@ sdl:entityKey a rdf:Property ;
     rdfs:comment """Declares that this dataset contains temporal snapshots of
         entities identified by this column. The same entity key value
         appears in multiple rows across time. Consumers should expect
-        duplicates on this column and use a timestamp column to select
-        the desired point-in-time state.""" .
+        duplicates on this column and use the snapshot timestamp to
+        select the desired point-in-time state.""" .
+
+sdl:snapshotTimestamp a rdf:Property ;
+    rdfs:domain sdl:Dataset ;
+    rdfs:range sdl:Column ;
+    rdfs:comment """The column that identifies the point in time for each
+        snapshot. Used with sdl:entityKey to select a specific state
+        of an entity. For Hive-partitioned snapshot stores, this may
+        be a partition-derived column rather than a data column.""" .
 
 
 # -----------------------------------------------------------------------------
@@ -709,14 +806,22 @@ sdl:EmbeddedStructure a rdfs:Class ;
 
 sdl:embeddedFormat a rdf:Property ;
     rdfs:domain sdl:EmbeddedStructure ;
-    rdfs:range xsd:string ;
-    rdfs:comment "Encoding format of the embedded data, e.g. 'json', 'csv'." .
+    rdfs:range sdl:DataEncodingFormat ;
+    rdfs:comment "Encoding format of the embedded data." .
 
 sdl:embeddedElementType a rdf:Property ;
     rdfs:domain sdl:EmbeddedStructure ;
     rdfs:range xsd:string ;
     rdfs:comment """Description of the inner element type, e.g.
         'array<string>', 'array<{price: float, size: float}>'.""" .
+
+# --- Data encoding format individuals ---
+
+sdl:DataEncodingFormat a rdfs:Class ;
+    rdfs:comment "Encoding format for embedded structured data." .
+
+sdl:JSONEncoding a sdl:DataEncodingFormat ; rdfs:label "json" .
+sdl:CSVEncoding  a sdl:DataEncodingFormat ; rdfs:label "csv" .
 
 
 # -----------------------------------------------------------------------------
@@ -727,7 +832,8 @@ sdl:embeddedElementType a rdf:Property ;
 # (e.g. dt=YYYY-MM-DD/hour=HH).
 # -----------------------------------------------------------------------------
 
-sdl:CompositePartitionScheme rdfs:subClassOf sdl:PartitionScheme ;
+sdl:CompositePartitionScheme a rdfs:Class ;
+    rdfs:subClassOf sdl:PartitionScheme ;
     rdfs:comment """A partition scheme with multiple partition dimensions.
         Each level is declared as a PartitionLevel with its own column
         and granularity.""" .
@@ -754,8 +860,8 @@ sdl:levelColumn a rdf:Property ;
 
 sdl:levelGranularity a rdf:Property ;
     rdfs:domain sdl:PartitionLevel ;
-    rdfs:range xsd:string ;
-    rdfs:comment "Granularity of this partition level, e.g. 'daily', 'hourly'." .
+    rdfs:range sdl:TemporalGranularity ;
+    rdfs:comment "Granularity of this partition level." .
 
 
 # -----------------------------------------------------------------------------
@@ -785,11 +891,22 @@ sdl:foreignKeyTo a rdf:Property ;
 
 sdl:referentialIntegrity a rdf:Property ;
     rdfs:domain sdl:ForeignKey ;
-    rdfs:range xsd:string ;
-    rdfs:comment """Expected referential integrity level:
-        'strict' = every FK value must exist in target,
-        'eventual' = may temporarily be missing,
-        'partial' = some values may never resolve.""" .
+    rdfs:range sdl:ReferentialIntegrityLevel ;
+    rdfs:comment "Expected referential integrity level." .
+
+# --- Referential integrity level individuals ---
+
+sdl:ReferentialIntegrityLevel a rdfs:Class ;
+    rdfs:comment "Expected referential integrity of a foreign key." .
+
+sdl:StrictIntegrity a sdl:ReferentialIntegrityLevel ;
+    rdfs:comment "Every FK value must exist in the target." .
+
+sdl:EventualIntegrity a sdl:ReferentialIntegrityLevel ;
+    rdfs:comment "FK values may temporarily be missing but will resolve." .
+
+sdl:PartialIntegrity a sdl:ReferentialIntegrityLevel ;
+    rdfs:comment "Some FK values may never resolve in the target." .
 
 
 # -----------------------------------------------------------------------------
