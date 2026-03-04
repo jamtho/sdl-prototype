@@ -181,6 +181,21 @@ class SDLGraph:
         path_template = _lit_str(self.g.value(partition, SDL.pathTemplate)) if partition else None
         granularity = _label_or_str(self.g, self.g.value(partition, SDL.partitionGranularity)) if partition else None
 
+        # Handle CompositePartitionScheme
+        if not granularity and partition and (partition, RDF.type, SDL.CompositePartitionScheme) in self.g:
+            levels: list[tuple[int, str, str]] = []
+            for level in self.g.objects(partition, SDL.hasPartitionLevel):
+                prec_lit = self.g.value(level, SDL.levelPrecedence)
+                prec = int(prec_lit) if prec_lit else 99
+                col = _lit_str(self.g.value(level, SDL.levelColumn))
+                gran = _label_or_str(self.g, self.g.value(level, SDL.levelGranularity))
+                levels.append((prec, gran.lower() if gran else col, col))
+            if levels:
+                levels.sort()
+                gran_parts = " + ".join(g for _, g, _ in levels)
+                col_parts = ", ".join(c for _, _, c in levels)
+                granularity = f"{gran_parts} ({col_parts})"
+
         redundant_key: str | None = None
         if partition:
             rk_node = self.g.value(partition, SDL.redundantPartitionKey)

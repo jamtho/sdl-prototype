@@ -6,21 +6,23 @@
 
 | Dataset | Row Semantics | Schema | Partitioning | Format |
 |---------|---------------|--------|--------------|--------|
-| Gamma Market Snapshots | sdl:SnapshotRow | sdl:InferredSchema | — | Parquet |
-| Gamma Event Snapshots | sdl:SnapshotRow | sdl:InferredSchema | — | Parquet |
-| CLOB Price Snapshots | sdl:SnapshotRow | sdl:InferredSchema | — | Parquet |
-| CLOB Orderbook Snapshots | sdl:SnapshotRow | sdl:InferredSchema | — | Parquet |
-| Trade Events | sdl:EventRow | sdl:InferredSchema | — | Parquet |
-| Token Holder Snapshots | sdl:SnapshotRow | sdl:InferredSchema | — | Parquet |
-| Gamma Tags | — | — | — | Parquet |
-| Gamma Series | — | — | — | Parquet |
-| Gamma Sports | — | — | — | Parquet |
+| Gamma Market Snapshots | sdl:SnapshotRow | sdl:InferredSchema | daily + hourly (dt, hour) | Parquet |
+| Gamma Event Snapshots | sdl:SnapshotRow | sdl:InferredSchema | daily + hourly (dt, hour) | Parquet |
+| CLOB Price Snapshots | sdl:SnapshotRow | sdl:InferredSchema | daily + hourly (dt, hour) | Parquet |
+| CLOB Orderbook Snapshots | sdl:SnapshotRow | sdl:InferredSchema | daily + hourly (dt, hour) | Parquet |
+| Trade Events | sdl:EventRow | sdl:InferredSchema | daily + hourly (dt, hour) | Parquet |
+| Token Holder Snapshots | sdl:SnapshotRow | sdl:InferredSchema | daily + hourly (dt, hour) | Parquet |
+| Gamma Tags | — | — | daily + hourly (dt, hour) | Parquet |
+| Gamma Series | — | — | daily + hourly (dt, hour) | Parquet |
+| Gamma Sports | — | — | daily + hourly (dt, hour) | Parquet |
 
 ---
 
 ## Gamma Market Snapshots
 
 **URI:** `pm:MarketSnapshots`
+  
+Hourly snapshots of all active Polymarket markets from the Gamma API. ~33,500 markets per snapshot, polled every 5 minutes, compacted hourly. Richest schema (~30+ columns).
   
 **Row semantics:** sdl:SnapshotRow
   
@@ -94,6 +96,8 @@
 
 **URI:** `pm:EventSnapshots`
   
+Hourly snapshots of Polymarket events from the Gamma API. ~7,900 events per snapshot. Each event groups one or more related markets.
+  
 **Row semantics:** sdl:SnapshotRow
   
 **Schema:** sdl:InferredSchema
@@ -139,6 +143,8 @@
 
 **URI:** `pm:PriceSnapshots`
   
+Hourly snapshots of CLOB token prices and midpoints. ~2,000 tokens polled every 30 seconds. Merges /price and /midpoint endpoints.
+  
 **Row semantics:** sdl:SnapshotRow
   
 **Schema:** sdl:InferredSchema
@@ -169,6 +175,8 @@
 ## CLOB Orderbook Snapshots
 
 **URI:** `pm:OrderbookSnapshots`
+  
+Hourly snapshots of orderbook state for top 100 active tokens. Polled every 2 minutes.
   
 **Row semantics:** sdl:SnapshotRow
   
@@ -207,6 +215,8 @@
 ## Trade Events
 
 **URI:** `pm:Trades`
+  
+Hourly files of recent trades from the Data API. 100 trades polled every 60 seconds. This is the most event-like dataset — each row represents a distinct trade event, unlike the snapshot datasets. Rows are in API response order (roughly reverse chronological), not meaningfully sorted.
   
 **Row semantics:** sdl:EventRow
   
@@ -252,6 +262,8 @@
 
 **URI:** `pm:HolderSnapshots`
   
+Hourly snapshots of top 20 holders per token for first 50 known markets. Polled every 10 minutes. Snapshot semantics keyed by (condition_id, token) — composite entity key.
+  
 **Row semantics:** sdl:SnapshotRow
   
 **Schema:** sdl:InferredSchema
@@ -289,6 +301,8 @@
 
 **URI:** `pm:Tags`
   
+Near-static reference table of tags used to categorize markets. Refreshed daily. Columns: _fetched_at, _source, id, label, slug, publishedAt, createdAt, updatedAt, requiresTranslation.
+  
 **Path template:** `data/parquet/{stream}/dt={date}/hour={hour}.parquet`
 
 ### Columns
@@ -301,6 +315,8 @@
 ## Gamma Series
 
 **URI:** `pm:Series`
+  
+Reference table of market series (recurring market groups). ~200 entries, refreshed daily. Columns: _fetched_at, _source, id, title, ticker, slug, seriesType, recurrence, active, closed, volume, volume24hr, liquidity, commentCount.
   
 **Path template:** `data/parquet/{stream}/dt={date}/hour={hour}.parquet`
 
@@ -315,6 +331,8 @@
 
 **URI:** `pm:Sports`
   
+Reference table of sport categories for sports betting markets. ~100 entries, refreshed daily. Columns: _fetched_at, _source, id, sport, image, resolution, ordering, tags, series.
+  
 **Path template:** `data/parquet/{stream}/dt={date}/hour={hour}.parquet`
 
 ### Columns
@@ -322,23 +340,56 @@
 | Name | Physical Type | Semantic Type | Nullable |
 |------|---------------|---------------|----------|
 
+---
+
+## Semantic Types Reference
+
+| Type | Label | Physical Type | Range | Unit | Description |
+|------|-------|---------------|-------|------|-------------|
+| pm:CLOBTokenId | CLOB Token ID | sdl:Varchar |  |  | Identifier for a tradable token on Polymarket's CLOB (Central Limit Order Book). Each market outcome has a distinct token ID. Long numeric string. |
+| pm:CompetitivenessScore | Market Competitiveness Score | sdl:Double | 0.0–1.0 |  | Score from 0.0 to 1.0 indicating how competitive a market is. |
+| pm:ConditionId | On-Chain Condition ID | sdl:Varchar |  |  | Hex-encoded blockchain condition identifier linking a Polymarket market to its on-chain resolution contract. Serves as the primary cross-system join key between gamma/markets, trades, and holders. |
+| pm:DataSourceLabel | Data Source Label | sdl:Varchar |  |  | Label identifying which fetcher stream produced this row (e.g. 'gamma/markets', 'clob/prices'). Injected by the fetcher, not from the API. |
+| pm:EventId | Polymarket Event ID | sdl:Varchar |  |  | Unique identifier for an event (a grouping of related markets) on Polymarket's Gamma API. |
+| pm:FetchTimestamp | Fetch Timestamp | sdl:Double |  |  | Unix epoch float (seconds since 1970-01-01T00:00:00Z) injected by the fetcher at collection time. NOT from the API. Stored as Float64, not TimestampTZ, because the fetcher writes time.time() directly. |
+| pm:ISOTimestamp | ISO 8601 Timestamp String | sdl:Varchar |  |  | ISO 8601 formatted timestamp as a string. Used by the Gamma API for dates (startDate, endDate, createdAt, etc.). |
+| pm:JSONArray | JSON-Serialized Array | sdl:Varchar |  |  | A column whose physical type is Varchar but whose content is a JSON-encoded array. Examples: outcomes='["Yes","No"]', clobTokenIds='["1234","5678"]', bids/asks orderbook levels. Columns with this type should also declare sdl:embeddedStructure for the inner element type. |
+| pm:MarketCategory | Market Category | sdl:Varchar |  |  | Category label for a market (e.g. 'Politics', 'Sports', 'Crypto'). Open-ended but constrained set from the platform. |
+| pm:MarketId | Polymarket Market ID | sdl:Varchar |  |  | Unique identifier for a prediction market on Polymarket's Gamma API. Varchar string, typically a short alphanumeric slug. |
+| pm:OutcomeIndex | Outcome Index | sdl:Double | 0.0 |  | Zero-based index into a market's outcome array. Typically 0 or 1 for binary Yes/No markets. |
+| pm:PriceChange | Price Change | sdl:Double |  |  | Absolute change in price over a time window. Can be negative. |
+| pm:PriceSpread | Bid-Ask Spread | sdl:Double | 0.0 |  | Difference between best ask and best bid prices. |
+| pm:Probability | Probability | sdl:Double | 0.0–1.0 |  | Price interpreted as a probability. On Polymarket, prices of outcome tokens range from 0.0 to 1.0, representing the market-implied probability of that outcome. |
+| pm:ProxyWallet | Proxy Wallet Address | sdl:Varchar |  |  | Ethereum proxy wallet address for a Polymarket trader. |
+| pm:Slug | URL Slug | sdl:Varchar |  |  | URL-safe slug used in Polymarket URLs. |
+| pm:TradeSide | Trade Side | sdl:Varchar |  |  | Direction of a trade: "BUY" or "SELL". |
+| pm:TradeSize | Trade Size | sdl:Double | >0.0 |  | Number of shares in a trade. Stored as Float64 because the compactor infers from JSON (which has no integer type). |
+| pm:TransactionHash | Transaction Hash | sdl:Varchar |  |  | On-chain transaction hash for a trade settlement. |
+| pm:USDAmount | USD Amount | sdl:Double | 0.0 | USD | Dollar amount. Volume, liquidity, etc. |
+
 ## Cross-Dataset Relationships
 
 ### Foreign Keys
 
-| Relationship | From | To | Integrity |
-|-------------|------|-----|-----------|
-| Trades → Markets (via conditionId) | `conditionId` | `conditionId` | sdl:PartialIntegrity |
-| Trades → Prices (via asset/token_id) | `asset` | `token_id` | sdl:PartialIntegrity |
-| Holders → Markets (via condition_id) | `condition_id` | `conditionId` | sdl:PartialIntegrity |
-| Books → Markets (via market/conditionId) | `market` | `conditionId` | sdl:PartialIntegrity |
+| Relationship | From (Dataset.Column) | To (Dataset.Column) | Integrity |
+|-------------|----------------------|---------------------|-----------|
+| Trades → Markets (via conditionId) | Trade Events.`conditionId` | Gamma Market Snapshots.`conditionId` | sdl:PartialIntegrity |
+| Trades → Prices (via asset/token_id) | Trade Events.`asset` | CLOB Price Snapshots.`token_id` | sdl:PartialIntegrity |
+| Holders → Markets (via condition_id) | Token Holder Snapshots.`condition_id` | Gamma Market Snapshots.`conditionId` | sdl:PartialIntegrity |
+| Books → Markets (via market/conditionId) | CLOB Orderbook Snapshots.`market` | Gamma Market Snapshots.`conditionId` | sdl:PartialIntegrity |
 
 ### Same Entity
 
-| Identity | Columns |
-|----------|---------|
-| Condition ID identifies the same market across datasets | `conditionId`, `conditionId`, `condition_id`, `market` |
-| CLOB token ID identifies the same token across datasets | `token_id`, `asset_id`, `asset`, `token` |
+| Identity | Dataset | Column |
+|----------|---------|--------|
+| Condition ID identifies the same market across datasets | Gamma Market Snapshots | `conditionId` |
+| Condition ID identifies the same market across datasets | Trade Events | `conditionId` |
+| Condition ID identifies the same market across datasets | Token Holder Snapshots | `condition_id` |
+| Condition ID identifies the same market across datasets | CLOB Orderbook Snapshots | `market` |
+| CLOB token ID identifies the same token across datasets | CLOB Price Snapshots | `token_id` |
+| CLOB token ID identifies the same token across datasets | CLOB Orderbook Snapshots | `asset_id` |
+| CLOB token ID identifies the same token across datasets | Trade Events | `asset` |
+| CLOB token ID identifies the same token across datasets | Token Holder Snapshots | `token` |
 
 ---
 

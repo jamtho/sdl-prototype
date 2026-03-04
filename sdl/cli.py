@@ -350,6 +350,11 @@ def _render_description(
     for uri in ds_uris:
         lines.extend(_render_dataset_section(graph, uri))
 
+    # Semantic types reference
+    sem_types = _render_semantic_types(graph, ds_uris)
+    if sem_types:
+        lines.extend(sem_types)
+
     # Cross-dataset relationships
     cross = _render_cross_dataset(graph, ds_uris)
     if cross:
@@ -375,6 +380,10 @@ def _render_dataset_section(graph: SDLGraph, uri: str) -> list[str]:
     lines.append(f"## {ds.label}")
     lines.append("")
     lines.append(f"**URI:** `{uri}`")
+
+    comment = _lit_str(g.value(subj, RDFS.comment))
+    if comment:
+        lines.append(f"  \n{' '.join(comment.split())}")
 
     row_sem = _label_or_str(g, g.value(subj, SDL.rowSemantics))
     if row_sem:
@@ -444,6 +453,55 @@ def _render_dataset_section(graph: SDLGraph, uri: str) -> list[str]:
     return lines
 
 
+def _render_semantic_types(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
+    """Render a reference table of all semantic types used across datasets."""
+    g = graph.g
+    # Collect unique semantic type URIs
+    seen: set[str] = set()
+    for uri in ds_uris:
+        ds = graph.get_dataset(uri)
+        for col in ds.columns:
+            if col.semantic_type:
+                seen.add(col.semantic_type)
+    if not seen:
+        return []
+
+    lines: list[str] = []
+    lines.append("---")
+    lines.append("")
+    lines.append("## Semantic Types Reference")
+    lines.append("")
+    lines.append("| Type | Label | Physical Type | Range | Unit | Description |")
+    lines.append("|------|-------|---------------|-------|------|-------------|")
+
+    for type_uri in sorted(seen):
+        info = graph.get_semantic_type(type_uri)
+        if info is None:
+            lines.append(f"| {type_uri} | | | | | |")
+            continue
+        # Build range string
+        parts: list[str] = []
+        if info.min_inclusive is not None:
+            parts.append(f"{info.min_inclusive}")
+        elif info.min_exclusive is not None:
+            parts.append(f">{info.min_exclusive}")
+        if info.max_inclusive is not None:
+            parts.append(f"{info.max_inclusive}")
+        elif info.max_exclusive is not None:
+            parts.append(f"<{info.max_exclusive}")
+        range_str = "–".join(parts) if parts else ""
+
+        comment = _lit_str(g.value(graph._resolve_uri(type_uri), RDFS.comment))
+        desc = " ".join(comment.split()) if comment else ""
+        lines.append(
+            f"| {type_uri} | {info.label} | {info.required_physical_type or ''} "
+            f"| {range_str} | {info.unit or ''} | {desc} |"
+        )
+
+    lines.append("")
+    return lines
+
+
 def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     """Render cross-dataset relationships: aggregations, foreign keys, same-entity."""
     g = graph.g
@@ -484,24 +542,26 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
         label = _lit_str(g.value(fk_node, RDFS.label)) or _str(fk_node)
         from_name = _lit_str(g.value(from_col, SDL.columnName))
         to_name = _lit_str(g.value(to_col, SDL.columnName))
+        from_ds_label = _lit_str(g.value(from_ds, RDFS.label)) if from_ds else "?"
+        to_ds_label = _lit_str(g.value(to_ds, RDFS.label)) if to_ds else "?"
         integrity = _label_or_str(g, g.value(fk_node, SDL.referentialIntegrity))
         fk_lines.append(
-            f"| {label} | `{from_name}` | `{to_name}` | {integrity} |"
+            f"| {label} | {from_ds_label}.`{from_name}` "
+            f"| {to_ds_label}.`{to_name}` | {integrity} |"
         )
 
     if fk_lines:
         lines.append("### Foreign Keys")
         lines.append("")
-        lines.append("| Relationship | From | To | Integrity |")
-        lines.append("|-------------|------|-----|-----------|")
+        lines.append("| Relationship | From (Dataset.Column) | To (Dataset.Column) | Integrity |")
+        lines.append("|-------------|----------------------|---------------------|-----------|")
         lines.extend(fk_lines)
         lines.append("")
 
-    # Same entity
+    # Same entity (long format: one row per column)
     se_lines: list[str] = []
     for se_node in g.subjects(RDF.type, SDL.SameEntity):
         cols = list(g.objects(se_node, SDL.identifyingColumn))
-        # Check if any identifying column belongs to a dataset in our set
         relevant = any(
             _find_dataset_for_column(g, col, ds_uris_resolved) is not None
             for col in cols
@@ -509,16 +569,17 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
         if not relevant:
             continue
         label = _lit_str(g.value(se_node, RDFS.label)) or _str(se_node)
-        col_names = ", ".join(
-            f"`{_lit_str(g.value(c, SDL.columnName))}`" for c in cols
-        )
-        se_lines.append(f"| {label} | {col_names} |")
+        for col in cols:
+            col_name = _lit_str(g.value(col, SDL.columnName))
+            col_ds = _find_dataset_for_column(g, col, ds_uris_resolved)
+            ds_label = _lit_str(g.value(col_ds, RDFS.label)) if col_ds else "?"
+            se_lines.append(f"| {label} | {ds_label} | `{col_name}` |")
 
     if se_lines:
         lines.append("### Same Entity")
         lines.append("")
-        lines.append("| Identity | Columns |")
-        lines.append("|----------|---------|")
+        lines.append("| Identity | Dataset | Column |")
+        lines.append("|----------|---------|--------|")
         lines.extend(se_lines)
         lines.append("")
 

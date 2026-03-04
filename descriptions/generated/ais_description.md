@@ -15,6 +15,8 @@
 
 **URI:** `ais:DailyBroadcasts`
   
+One Parquet file per day containing preprocessed AIS vessel position reports from NOAA Marine Cadastre. Denormalized: includes static vessel data (name, IMO, dimensions) merged with position reports. Ordered by MMSI then timestamp within each file.
+  
 **Row semantics:** sdl:EventRow
   
 **Schema:** sdl:FixedSchema
@@ -76,6 +78,8 @@
 
 **URI:** `ais:DailyIndex`
   
+One Parquet file per day, one row per MMSI observed that day. Summarises the broadcast data for quick vessel-level queries across the full time range.
+  
 **Row semantics:** sdl:AggregateRow
   
 **Schema:** sdl:FixedSchema
@@ -114,6 +118,38 @@
 | `vessel_names` | sdl:VarcharList |  | yes |
 | `vessel_types` | sdl:IntegerList |  | yes |
 | `widths` | sdl:DoubleList |  | yes |
+
+---
+
+## Semantic Types Reference
+
+| Type | Label | Physical Type | Range | Unit | Description |
+|------|-------|---------------|-------|------|-------------|
+| ais:AISRawTimestampString | Raw AIS Timestamp String | sdl:Varchar |  |  | Original timestamp string from the NOAA CSV before parsing. Retained for traceability. |
+| ais:AISTimestamp | AIS Broadcast Timestamp | sdl:TimestampTZ |  |  | Timestamp of the AIS broadcast, with timezone (UTC). |
+| ais:CallSign | Radio Call Sign | sdl:Varchar |  |  |  |
+| ais:CargoTypeCode | AIS Cargo Type Code | sdl:Integer |  |  |  |
+| ais:CourseOverGround | Course Over Ground | sdl:Double | 0.0–<360.0 | degrees | Relative to true north. 3600 (36.0 scaled) = not available. |
+| ais:DistanceMetres | Distance in Metres | sdl:Double | 0.0 | metres |  |
+| ais:DurationSeconds | Duration in Seconds | sdl:Double | 0.0 | seconds |  |
+| ais:H3Resolution15 | H3 Cell Index at Resolution 15 | sdl:UBigInt |  |  | ~0.9 m² cell area. Finest H3 resolution. |
+| ais:IMONumber | IMO Ship Identification Number | sdl:Varchar |  |  | Seven-digit number permanently assigned to a vessel. More reliable than MMSI for identity, but not always present in AIS data. String because leading 'IMO' prefix is sometimes included. |
+| ais:MMSI | Maritime Mobile Service Identity | sdl:Integer | 100000000.0–799999999.0 |  | Nine-digit vessel identifier assigned by flag state. In practice: not unique to a vessel (vessels change MMSI, multiple vessels sometimes share one, some are garbage). Treat as 'mostly identifies a vessel, with known failure modes'. |
+| ais:MessageCount | Count of AIS Messages | sdl:BigInt | 1.0 |  | Must be >= 1 since the group would not exist otherwise. |
+| ais:NavigationalStatus | AIS Navigational Status | sdl:Integer | 0.0–15.0 |  | 0=under way using engine, 1=at anchor, 2=not under command, 3=restricted maneuverability, 5=moored, 7=fishing, 8=under sail, 15=default/not defined. Per ITU-R M.1371. |
+| ais:PartitionDate | Partition Date | sdl:Date |  |  | Date value constant within each file, matching the file's partition. Embedded as a column for query convenience. |
+| ais:SpeedMetresPerSecond | Speed in Metres per Second | sdl:Double | 0.0 | m/s |  |
+| ais:SpeedOverGround | Speed Over Ground | sdl:Double | 0.0–102.2 | knots | AIS SOG: 0.0-102.2 knots in 0.1 knot steps. Value 102.3 means >=102.2. Null or NaN means not available. |
+| ais:TransceiverClass | AIS Transceiver Class | sdl:Varchar |  |  | E.g. 'A', 'B', 'A-S'. |
+| ais:TrueHeading | True Heading | sdl:Double | 0.0–<360.0 | degrees | 511 means not available in raw AIS; may appear as NaN here. |
+| ais:VesselDraft | Vessel Static Draft | sdl:Double | 0.0–25.5 | metres | Maximum draught. 0 = not available in raw AIS. |
+| ais:VesselLength | Vessel Length | sdl:Double |  | metres |  |
+| ais:VesselName | Vessel Name | sdl:Varchar |  |  | As broadcast by AIS. May contain trailing spaces, be truncated, or vary between broadcasts. |
+| ais:VesselTypeCode | AIS Vessel Type Code | sdl:Integer | 0.0–99.0 |  | Vessel type as per ITU-R M.1371. Values 0-99. Grouped: 30-39 fishing, 40-49 HSC, 60-69 passenger, 70-79 cargo, 80-89 tanker, etc. |
+| ais:VesselWidth | Vessel Width (Beam) | sdl:Double |  | metres |  |
+| ais:WGS84Latitude | WGS84 Latitude | sdl:Double | -90.0–90.0 | degrees |  |
+| ais:WGS84Longitude | WGS84 Longitude | sdl:Double | -180.0–180.0 | degrees |  |
+| ais:WKBPoint | Well-Known Binary Point Geometry | sdl:Blob |  |  | WKB-encoded Point geometry. CRS: WGS84 / EPSG:4326. |
 
 ## Cross-Dataset Relationships
 
