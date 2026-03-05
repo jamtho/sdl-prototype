@@ -3,7 +3,7 @@ Schema-level validators.
 
 These are the cheapest validators — they read only Parquet file metadata
 (the footer), not any row data. They check that the physical structure of
-the file matches what the SDL graph declares.
+the file matches what the Manifest graph declares.
 
 This is the class of validator that catches the MMSI-as-string bug.
 """
@@ -15,29 +15,29 @@ from typing import Any
 
 import pyarrow.parquet as pq
 
-from sdl.model import Attestation, ComputationalProfile, ValidationResult
+from manifest.model import Attestation, ComputationalProfile, ValidationResult
 
-# Maps SDL physical type URIs to sets of acceptable Arrow type strings.
-# Multiple Arrow representations can satisfy a single SDL type.
-SDL_TO_ARROW_TYPES: dict[str, set[str]] = {
-    "sdl:Boolean": {"bool"},
-    "sdl:Integer": {"int32"},
-    "sdl:BigInt": {"int64"},
-    "sdl:UBigInt": {"uint64"},
-    "sdl:Float": {"float", "float32"},
-    "sdl:Double": {"double", "float64"},
-    "sdl:Varchar": {"string", "utf8", "large_string", "large_utf8"},
-    "sdl:Date": {"date32[day]", "date32"},
-    "sdl:TimestampTZ": {
+# Maps MNF physical type URIs to sets of acceptable Arrow type strings.
+# Multiple Arrow representations can satisfy a single MNF type.
+MNF_TO_ARROW_TYPES: dict[str, set[str]] = {
+    "mnf:Boolean": {"bool"},
+    "mnf:Integer": {"int32"},
+    "mnf:BigInt": {"int64"},
+    "mnf:UBigInt": {"uint64"},
+    "mnf:Float": {"float", "float32"},
+    "mnf:Double": {"double", "float64"},
+    "mnf:Varchar": {"string", "utf8", "large_string", "large_utf8"},
+    "mnf:Date": {"date32[day]", "date32"},
+    "mnf:TimestampTZ": {
         "timestamp[us, tz=UTC]",
         "timestamp[ns, tz=UTC]",
         "timestamp[ms, tz=UTC]",
         "timestamp[s, tz=UTC]",
     },
-    "sdl:Blob": {"binary", "large_binary"},
-    "sdl:IntegerList": {"list<item: int32>", "large_list<item: int32>"},
-    "sdl:DoubleList": {"list<item: double>", "large_list<item: double>"},
-    "sdl:VarcharList": {
+    "mnf:Blob": {"binary", "large_binary"},
+    "mnf:IntegerList": {"list<item: int32>", "large_list<item: int32>"},
+    "mnf:DoubleList": {"list<item: double>", "large_list<item: double>"},
+    "mnf:VarcharList": {
         "list<item: string>",
         "list<item: utf8>",
         "large_list<item: string>",
@@ -54,7 +54,7 @@ def validate_physical_types(
     **kwargs: Any,
 ) -> list[Attestation]:
     """
-    Check that Parquet column types match SDL declarations.
+    Check that Parquet column types match MNF declarations.
 
     Reads only the Parquet footer metadata — zero data scan.
 
@@ -63,9 +63,9 @@ def validate_physical_types(
     file_path : Path
         Path to a Parquet file.
     dataset_uri : str
-        SDL URI of the dataset being validated.
+        MNF URI of the dataset being validated.
     expected_types : dict[str, str]
-        Mapping of column_name -> SDL physical type URI.
+        Mapping of column_name -> MNF physical type URI.
     """
     attestations: list[Attestation] = []
 
@@ -86,7 +86,7 @@ def validate_physical_types(
     # Check for expected columns that are missing
     file_columns = {schema.field(i).name for i in range(len(schema))}
 
-    for col_name, sdl_type in expected_types.items():
+    for col_name, mnf_type in expected_types.items():
         constraint_uri = f"{dataset_uri}/column/{col_name}/physicalType"
 
         if col_name not in file_columns:
@@ -103,7 +103,7 @@ def validate_physical_types(
 
         field_idx = schema.get_field_index(col_name)
         actual_type = str(schema.field(field_idx).type)
-        acceptable = SDL_TO_ARROW_TYPES.get(sdl_type, set())
+        acceptable = MNF_TO_ARROW_TYPES.get(mnf_type, set())
 
         if actual_type in acceptable:
             attestations.append(Attestation(
@@ -111,7 +111,7 @@ def validate_physical_types(
                 dataset_uri=dataset_uri,
                 file_path=str(file_path),
                 result=ValidationResult.PASS,
-                details=f"'{col_name}': {actual_type} matches {sdl_type}",
+                details=f"'{col_name}': {actual_type} matches {mnf_type}",
                 profile=ComputationalProfile.SCHEMA_CHECK,
             ))
         else:
@@ -121,7 +121,7 @@ def validate_physical_types(
                 file_path=str(file_path),
                 result=ValidationResult.FAIL,
                 details=f"TYPE MISMATCH: '{col_name}' has type '{actual_type}' "
-                        f"but SDL declares {sdl_type} "
+                        f"but MNF declares {mnf_type} "
                         f"(acceptable: {acceptable})",
                 profile=ComputationalProfile.SCHEMA_CHECK,
             ))

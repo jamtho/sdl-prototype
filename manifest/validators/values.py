@@ -13,7 +13,7 @@ from typing import Any
 
 import duckdb
 
-from sdl.model import Attestation, ComputationalProfile, ValidationResult
+from manifest.model import Attestation, ComputationalProfile, ValidationResult
 
 
 def validate_value_ranges(

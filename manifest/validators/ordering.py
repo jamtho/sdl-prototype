@@ -12,7 +12,7 @@ from typing import Any
 
 import duckdb
 
-from sdl.model import Attestation, ComputationalProfile, OrderingKeyInfo, ValidationResult
+from manifest.model import Attestation, ComputationalProfile, OrderingKeyInfo, ValidationResult
 
 
 def validate_row_ordering(

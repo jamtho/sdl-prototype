@@ -1,4 +1,4 @@
-@prefix sdl:    <http://example.org/sdl#> .
+@prefix mnf:    <http://example.org/manifest#> .
 @prefix ais:    <http://example.org/ais#> .
 @prefix geo:    <http://www.opengis.net/ont/geosparql#> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -9,10 +9,10 @@
 # AIS-NOAA Dataset Description
 # =============================================================================
 #
-# Applies the SDL vocabulary to describe the preprocessed NOAA Marine Cadastre
+# Applies the Manifest vocabulary to describe the preprocessed NOAA Marine Cadastre
 # AIS data: daily broadcast files and their companion daily index files.
 #
-# This serves as the reference example for the SDL framework.
+# This serves as the reference example for the Manifest framework.
 # =============================================================================
 
 
@@ -25,197 +25,197 @@
 # required physical type, value constraints, and domain semantics.
 # =============================================================================
 
-ais:MMSI a sdl:SemanticType ;
+ais:MMSI a mnf:SemanticType ;
     rdfs:label "Maritime Mobile Service Identity" ;
     rdfs:comment """Nine-digit vessel identifier assigned by flag state. In
         practice: not unique to a vessel (vessels change MMSI, multiple
         vessels sometimes share one, some are garbage). Treat as 'mostly
         identifies a vessel, with known failure modes'.""" ;
-    sdl:requiredPhysicalType sdl:Integer ;
-    sdl:valueRange [
-        sdl:minInclusive 100000000 ;
-        sdl:maxInclusive 799999999
+    mnf:requiredPhysicalType mnf:Integer ;
+    mnf:valueRange [
+        mnf:minInclusive 100000000 ;
+        mnf:maxInclusive 799999999
     ] ;
-    sdl:computationalProfile sdl:SchemaCheckOnly ;
+    mnf:computationalProfile mnf:SchemaCheckOnly ;
     rdfs:seeAlso <https://www.itu.int/rec/R-REC-M.585/en> .
 
-ais:IMONumber a sdl:SemanticType ;
+ais:IMONumber a mnf:SemanticType ;
     rdfs:label "IMO Ship Identification Number" ;
     rdfs:comment """Seven-digit number permanently assigned to a vessel.
         More reliable than MMSI for identity, but not always present in
         AIS data. String because leading 'IMO' prefix is sometimes
         included.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-ais:WGS84Latitude a sdl:SemanticType ;
+ais:WGS84Latitude a mnf:SemanticType ;
     rdfs:label "WGS84 Latitude" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "degrees" ;
-    sdl:valueRange [
-        sdl:minInclusive -90.0 ;
-        sdl:maxInclusive  90.0
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "degrees" ;
+    mnf:valueRange [
+        mnf:minInclusive -90.0 ;
+        mnf:maxInclusive  90.0
     ] .
 
-ais:WGS84Longitude a sdl:SemanticType ;
+ais:WGS84Longitude a mnf:SemanticType ;
     rdfs:label "WGS84 Longitude" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "degrees" ;
-    sdl:valueRange [
-        sdl:minInclusive -180.0 ;
-        sdl:maxInclusive  180.0
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "degrees" ;
+    mnf:valueRange [
+        mnf:minInclusive -180.0 ;
+        mnf:maxInclusive  180.0
     ] .
 
-ais:WGS84CoordinatePair a sdl:SemanticType ;
+ais:WGS84CoordinatePair a mnf:SemanticType ;
     rdfs:label "WGS84 Coordinate Pair (lat, lon)" ;
     rdfs:comment "A pair of columns jointly representing a WGS84 position." .
 
-ais:SpeedOverGround a sdl:SemanticType ;
+ais:SpeedOverGround a mnf:SemanticType ;
     rdfs:label "Speed Over Ground" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "knots" ;
-    sdl:valueRange [
-        sdl:minInclusive 0.0 ;
-        sdl:maxInclusive 102.2
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "knots" ;
+    mnf:valueRange [
+        mnf:minInclusive 0.0 ;
+        mnf:maxInclusive 102.2
     ] ;
     rdfs:comment """AIS SOG: 0.0-102.2 knots in 0.1 knot steps. Value 102.3
         means >=102.2. Null or NaN means not available.""" .
 
-ais:CourseOverGround a sdl:SemanticType ;
+ais:CourseOverGround a mnf:SemanticType ;
     rdfs:label "Course Over Ground" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "degrees" ;
-    sdl:valueRange [
-        sdl:minInclusive 0.0 ;
-        sdl:maxExclusive 360.0
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "degrees" ;
+    mnf:valueRange [
+        mnf:minInclusive 0.0 ;
+        mnf:maxExclusive 360.0
     ] ;
     rdfs:comment "Relative to true north. 3600 (36.0 scaled) = not available." .
 
-ais:TrueHeading a sdl:SemanticType ;
+ais:TrueHeading a mnf:SemanticType ;
     rdfs:label "True Heading" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "degrees" ;
-    sdl:valueRange [
-        sdl:minInclusive 0.0 ;
-        sdl:maxExclusive 360.0
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "degrees" ;
+    mnf:valueRange [
+        mnf:minInclusive 0.0 ;
+        mnf:maxExclusive 360.0
     ] ;
     rdfs:comment "511 means not available in raw AIS; may appear as NaN here." .
 
-ais:VesselTypeCode a sdl:SemanticType ;
+ais:VesselTypeCode a mnf:SemanticType ;
     rdfs:label "AIS Vessel Type Code" ;
-    sdl:requiredPhysicalType sdl:Integer ;
+    mnf:requiredPhysicalType mnf:Integer ;
     rdfs:comment """Vessel type as per ITU-R M.1371. Values 0-99. Grouped:
         30-39 fishing, 40-49 HSC, 60-69 passenger, 70-79 cargo,
         80-89 tanker, etc.""" ;
-    sdl:valueRange [
-        sdl:minInclusive 0 ;
-        sdl:maxInclusive 99
+    mnf:valueRange [
+        mnf:minInclusive 0 ;
+        mnf:maxInclusive 99
     ] .
 
-ais:NavigationalStatus a sdl:SemanticType ;
+ais:NavigationalStatus a mnf:SemanticType ;
     rdfs:label "AIS Navigational Status" ;
-    sdl:requiredPhysicalType sdl:Integer ;
+    mnf:requiredPhysicalType mnf:Integer ;
     rdfs:comment """0=under way using engine, 1=at anchor, 2=not under command,
         3=restricted maneuverability, 5=moored, 7=fishing, 8=under sail,
         15=default/not defined. Per ITU-R M.1371.""" ;
-    sdl:valueRange [
-        sdl:minInclusive 0 ;
-        sdl:maxInclusive 15
+    mnf:valueRange [
+        mnf:minInclusive 0 ;
+        mnf:maxInclusive 15
     ] .
 
-ais:VesselDraft a sdl:SemanticType ;
+ais:VesselDraft a mnf:SemanticType ;
     rdfs:label "Vessel Static Draft" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "metres" ;
-    sdl:valueRange [
-        sdl:minInclusive 0.0 ;
-        sdl:maxInclusive 25.5
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "metres" ;
+    mnf:valueRange [
+        mnf:minInclusive 0.0 ;
+        mnf:maxInclusive 25.5
     ] ;
     rdfs:comment "Maximum draught. 0 = not available in raw AIS." .
 
-ais:VesselLength a sdl:SemanticType ;
+ais:VesselLength a mnf:SemanticType ;
     rdfs:label "Vessel Length" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "metres" .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "metres" .
 
-ais:VesselWidth a sdl:SemanticType ;
+ais:VesselWidth a mnf:SemanticType ;
     rdfs:label "Vessel Width (Beam)" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "metres" .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "metres" .
 
-ais:CargoTypeCode a sdl:SemanticType ;
+ais:CargoTypeCode a mnf:SemanticType ;
     rdfs:label "AIS Cargo Type Code" ;
-    sdl:requiredPhysicalType sdl:Integer .
+    mnf:requiredPhysicalType mnf:Integer .
 
-ais:CallSign a sdl:SemanticType ;
+ais:CallSign a mnf:SemanticType ;
     rdfs:label "Radio Call Sign" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-ais:VesselName a sdl:SemanticType ;
+ais:VesselName a mnf:SemanticType ;
     rdfs:label "Vessel Name" ;
-    sdl:requiredPhysicalType sdl:Varchar ;
+    mnf:requiredPhysicalType mnf:Varchar ;
     rdfs:comment """As broadcast by AIS. May contain trailing spaces, be
         truncated, or vary between broadcasts.""" .
 
-ais:TransceiverClass a sdl:SemanticType ;
+ais:TransceiverClass a mnf:SemanticType ;
     rdfs:label "AIS Transceiver Class" ;
-    sdl:requiredPhysicalType sdl:Varchar ;
+    mnf:requiredPhysicalType mnf:Varchar ;
     rdfs:comment "E.g. 'A', 'B', 'A-S'." .
 
-ais:WKBPoint a sdl:SemanticType ;
+ais:WKBPoint a mnf:SemanticType ;
     rdfs:label "Well-Known Binary Point Geometry" ;
-    sdl:requiredPhysicalType sdl:Blob ;
+    mnf:requiredPhysicalType mnf:Blob ;
     rdfs:comment "WKB-encoded Point geometry. CRS: WGS84 / EPSG:4326." .
 
-ais:H3CellIndex a sdl:SemanticType ;
+ais:H3CellIndex a mnf:SemanticType ;
     rdfs:label "H3 Hexagonal Cell Index" ;
-    sdl:requiredPhysicalType sdl:UBigInt ;
+    mnf:requiredPhysicalType mnf:UBigInt ;
     rdfs:comment "Uber H3 cell index at a declared resolution." .
 
-ais:H3Resolution15 a sdl:SemanticType ;
+ais:H3Resolution15 a mnf:SemanticType ;
     rdfs:label "H3 Cell Index at Resolution 15" ;
     rdfs:comment "~0.9 m² cell area. Finest H3 resolution." ;
     # inherits from ais:H3CellIndex conceptually
-    sdl:requiredPhysicalType sdl:UBigInt .
+    mnf:requiredPhysicalType mnf:UBigInt .
 
-ais:AISTimestamp a sdl:SemanticType ;
+ais:AISTimestamp a mnf:SemanticType ;
     rdfs:label "AIS Broadcast Timestamp" ;
-    sdl:requiredPhysicalType sdl:TimestampTZ ;
+    mnf:requiredPhysicalType mnf:TimestampTZ ;
     rdfs:comment "Timestamp of the AIS broadcast, with timezone (UTC)." .
 
-ais:AISRawTimestampString a sdl:SemanticType ;
+ais:AISRawTimestampString a mnf:SemanticType ;
     rdfs:label "Raw AIS Timestamp String" ;
-    sdl:requiredPhysicalType sdl:Varchar ;
+    mnf:requiredPhysicalType mnf:Varchar ;
     rdfs:comment """Original timestamp string from the NOAA CSV before parsing.
         Retained for traceability.""" .
 
-ais:PartitionDate a sdl:SemanticType ;
+ais:PartitionDate a mnf:SemanticType ;
     rdfs:label "Partition Date" ;
-    sdl:requiredPhysicalType sdl:Date ;
+    mnf:requiredPhysicalType mnf:Date ;
     rdfs:comment """Date value constant within each file, matching the file's
         partition. Embedded as a column for query convenience.""" .
 
-ais:DistanceMetres a sdl:SemanticType ;
+ais:DistanceMetres a mnf:SemanticType ;
     rdfs:label "Distance in Metres" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "metres" ;
-    sdl:valueRange [ sdl:minInclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "metres" ;
+    mnf:valueRange [ mnf:minInclusive 0.0 ] .
 
-ais:DurationSeconds a sdl:SemanticType ;
+ais:DurationSeconds a mnf:SemanticType ;
     rdfs:label "Duration in Seconds" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "seconds" ;
-    sdl:valueRange [ sdl:minInclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "seconds" ;
+    mnf:valueRange [ mnf:minInclusive 0.0 ] .
 
-ais:SpeedMetresPerSecond a sdl:SemanticType ;
+ais:SpeedMetresPerSecond a mnf:SemanticType ;
     rdfs:label "Speed in Metres per Second" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "m/s" ;
-    sdl:valueRange [ sdl:minInclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "m/s" ;
+    mnf:valueRange [ mnf:minInclusive 0.0 ] .
 
-ais:MessageCount a sdl:SemanticType ;
+ais:MessageCount a mnf:SemanticType ;
     rdfs:label "Count of AIS Messages" ;
-    sdl:requiredPhysicalType sdl:BigInt ;
-    sdl:valueRange [ sdl:minInclusive 1 ] ;
+    mnf:requiredPhysicalType mnf:BigInt ;
+    mnf:valueRange [ mnf:minInclusive 1 ] ;
     rdfs:comment "Must be >= 1 since the group would not exist otherwise." .
 
 
@@ -227,17 +227,17 @@ ais:MessageCount a sdl:SemanticType ;
 # 2a. Daily Broadcasts Dataset
 # -----------------------------------------------------------------------------
 
-ais:DailyBroadcasts a sdl:Dataset ;
+ais:DailyBroadcasts a mnf:Dataset ;
     rdfs:label "AIS Daily Broadcast Positions" ;
     rdfs:comment """One Parquet file per day containing preprocessed AIS vessel
         position reports from NOAA Marine Cadastre. Denormalized: includes
         static vessel data (name, IMO, dimensions) merged with position
         reports. Ordered by MMSI then timestamp within each file.""" ;
-    sdl:rowSemantics sdl:EventRow ;
-    sdl:schemaStability sdl:FixedSchema ;
+    mnf:rowSemantics mnf:EventRow ;
+    mnf:schemaStability mnf:FixedSchema ;
 
     # --- Columns ---
-    sdl:hasColumn
+    mnf:hasColumn
         ais:bc_mmsi ,
         ais:bc_date ,
         ais:bc_base_date_time ,
@@ -261,19 +261,19 @@ ais:DailyBroadcasts a sdl:Dataset ;
         ais:bc_h3_res15 ;
 
     # --- Column groups ---
-    sdl:hasColumnGroup ais:bc_position ;
+    mnf:hasColumnGroup ais:bc_position ;
 
     # --- Physical layout ---
-    sdl:hasPhysicalLayout ais:bc_layout ;
+    mnf:hasPhysicalLayout ais:bc_layout ;
 
     # --- Partition scheme ---
-    sdl:partitionedBy ais:daily_date_partition ;
+    mnf:partitionedBy ais:daily_date_partition ;
 
     # --- Provenance ---
-    sdl:hasProvenance ais:noaa_provenance ;
+    mnf:hasProvenance ais:noaa_provenance ;
 
     # --- Known deficiencies ---
-    sdl:hasKnownDeficiency
+    mnf:hasKnownDeficiency
         ais:deficiency_missing_positions ,
         ais:deficiency_denormalized ,
         ais:deficiency_mmsi_identity .
@@ -281,199 +281,199 @@ ais:DailyBroadcasts a sdl:Dataset ;
 
 # --- Broadcast column definitions ---
 
-ais:bc_mmsi a sdl:Column ;
-    sdl:columnName "mmsi" ;
-    sdl:physicalType sdl:Integer ;
-    sdl:semanticType ais:MMSI ;
-    sdl:nullable true .
+ais:bc_mmsi a mnf:Column ;
+    mnf:columnName "mmsi" ;
+    mnf:physicalType mnf:Integer ;
+    mnf:semanticType ais:MMSI ;
+    mnf:nullable true .
 
-ais:bc_date a sdl:Column ;
-    sdl:columnName "date" ;
-    sdl:physicalType sdl:Date ;
-    sdl:semanticType ais:PartitionDate ;
-    sdl:nullable true .
+ais:bc_date a mnf:Column ;
+    mnf:columnName "date" ;
+    mnf:physicalType mnf:Date ;
+    mnf:semanticType ais:PartitionDate ;
+    mnf:nullable true .
 
-ais:bc_base_date_time a sdl:Column ;
-    sdl:columnName "base_date_time" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType ais:AISRawTimestampString ;
-    sdl:nullable true .
+ais:bc_base_date_time a mnf:Column ;
+    mnf:columnName "base_date_time" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType ais:AISRawTimestampString ;
+    mnf:nullable true .
 
-ais:bc_latitude a sdl:Column ;
-    sdl:columnName "latitude" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Latitude ;
-    sdl:nullable true .
+ais:bc_latitude a mnf:Column ;
+    mnf:columnName "latitude" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Latitude ;
+    mnf:nullable true .
 
-ais:bc_longitude a sdl:Column ;
-    sdl:columnName "longitude" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Longitude ;
-    sdl:nullable true .
+ais:bc_longitude a mnf:Column ;
+    mnf:columnName "longitude" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Longitude ;
+    mnf:nullable true .
 
-ais:bc_sog a sdl:Column ;
-    sdl:columnName "sog" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:SpeedOverGround ;
-    sdl:nullable true .
+ais:bc_sog a mnf:Column ;
+    mnf:columnName "sog" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:SpeedOverGround ;
+    mnf:nullable true .
 
-ais:bc_cog a sdl:Column ;
-    sdl:columnName "cog" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:CourseOverGround ;
-    sdl:nullable true .
+ais:bc_cog a mnf:Column ;
+    mnf:columnName "cog" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:CourseOverGround ;
+    mnf:nullable true .
 
-ais:bc_heading a sdl:Column ;
-    sdl:columnName "heading" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:TrueHeading ;
-    sdl:nullable true .
+ais:bc_heading a mnf:Column ;
+    mnf:columnName "heading" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:TrueHeading ;
+    mnf:nullable true .
 
-ais:bc_vessel_name a sdl:Column ;
-    sdl:columnName "vessel_name" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType ais:VesselName ;
-    sdl:nullable true .
+ais:bc_vessel_name a mnf:Column ;
+    mnf:columnName "vessel_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType ais:VesselName ;
+    mnf:nullable true .
 
-ais:bc_imo a sdl:Column ;
-    sdl:columnName "imo" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType ais:IMONumber ;
-    sdl:nullable true .
+ais:bc_imo a mnf:Column ;
+    mnf:columnName "imo" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType ais:IMONumber ;
+    mnf:nullable true .
 
-ais:bc_call_sign a sdl:Column ;
-    sdl:columnName "call_sign" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType ais:CallSign ;
-    sdl:nullable true .
+ais:bc_call_sign a mnf:Column ;
+    mnf:columnName "call_sign" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType ais:CallSign ;
+    mnf:nullable true .
 
-ais:bc_vessel_type a sdl:Column ;
-    sdl:columnName "vessel_type" ;
-    sdl:physicalType sdl:Integer ;
-    sdl:semanticType ais:VesselTypeCode ;
-    sdl:nullable true .
+ais:bc_vessel_type a mnf:Column ;
+    mnf:columnName "vessel_type" ;
+    mnf:physicalType mnf:Integer ;
+    mnf:semanticType ais:VesselTypeCode ;
+    mnf:nullable true .
 
-ais:bc_status a sdl:Column ;
-    sdl:columnName "status" ;
-    sdl:physicalType sdl:Integer ;
-    sdl:semanticType ais:NavigationalStatus ;
-    sdl:nullable true .
+ais:bc_status a mnf:Column ;
+    mnf:columnName "status" ;
+    mnf:physicalType mnf:Integer ;
+    mnf:semanticType ais:NavigationalStatus ;
+    mnf:nullable true .
 
-ais:bc_length a sdl:Column ;
-    sdl:columnName "length" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:VesselLength ;
-    sdl:nullable true .
+ais:bc_length a mnf:Column ;
+    mnf:columnName "length" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:VesselLength ;
+    mnf:nullable true .
 
-ais:bc_width a sdl:Column ;
-    sdl:columnName "width" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:VesselWidth ;
-    sdl:nullable true .
+ais:bc_width a mnf:Column ;
+    mnf:columnName "width" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:VesselWidth ;
+    mnf:nullable true .
 
-ais:bc_draft a sdl:Column ;
-    sdl:columnName "draft" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:VesselDraft ;
-    sdl:nullable true .
+ais:bc_draft a mnf:Column ;
+    mnf:columnName "draft" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:VesselDraft ;
+    mnf:nullable true .
 
-ais:bc_cargo a sdl:Column ;
-    sdl:columnName "cargo" ;
-    sdl:physicalType sdl:Integer ;
-    sdl:semanticType ais:CargoTypeCode ;
-    sdl:nullable true .
+ais:bc_cargo a mnf:Column ;
+    mnf:columnName "cargo" ;
+    mnf:physicalType mnf:Integer ;
+    mnf:semanticType ais:CargoTypeCode ;
+    mnf:nullable true .
 
-ais:bc_transceiver a sdl:Column ;
-    sdl:columnName "transceiver" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType ais:TransceiverClass ;
-    sdl:nullable true .
+ais:bc_transceiver a mnf:Column ;
+    mnf:columnName "transceiver" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType ais:TransceiverClass ;
+    mnf:nullable true .
 
-ais:bc_timestamp a sdl:Column ;
-    sdl:columnName "timestamp" ;
-    sdl:physicalType sdl:TimestampTZ ;
-    sdl:semanticType ais:AISTimestamp ;
-    sdl:nullable true .
+ais:bc_timestamp a mnf:Column ;
+    mnf:columnName "timestamp" ;
+    mnf:physicalType mnf:TimestampTZ ;
+    mnf:semanticType ais:AISTimestamp ;
+    mnf:nullable true .
 
-ais:bc_geometry a sdl:Column ;
-    sdl:columnName "geometry" ;
-    sdl:physicalType sdl:Blob ;
-    sdl:semanticType ais:WKBPoint ;
-    sdl:nullable true .
+ais:bc_geometry a mnf:Column ;
+    mnf:columnName "geometry" ;
+    mnf:physicalType mnf:Blob ;
+    mnf:semanticType ais:WKBPoint ;
+    mnf:nullable true .
 
-ais:bc_h3_res15 a sdl:Column ;
-    sdl:columnName "h3_res15" ;
-    sdl:physicalType sdl:UBigInt ;
-    sdl:semanticType ais:H3Resolution15 ;
-    sdl:nullable true .
+ais:bc_h3_res15 a mnf:Column ;
+    mnf:columnName "h3_res15" ;
+    mnf:physicalType mnf:UBigInt ;
+    mnf:semanticType ais:H3Resolution15 ;
+    mnf:nullable true .
 
 
 # --- Coordinate pair column group ---
 
-ais:bc_position a sdl:ColumnGroup ;
-    sdl:groupSemanticType ais:WGS84CoordinatePair ;
-    sdl:groupMember ais:bc_latitude ;
-    sdl:groupMember ais:bc_longitude .
+ais:bc_position a mnf:ColumnGroup ;
+    mnf:groupSemanticType ais:WGS84CoordinatePair ;
+    mnf:groupMember ais:bc_latitude ;
+    mnf:groupMember ais:bc_longitude .
 
-ais:bc_latitude sdl:memberOf ais:bc_position .
-ais:bc_longitude sdl:memberOf ais:bc_position .
+ais:bc_latitude mnf:memberOf ais:bc_position .
+ais:bc_longitude mnf:memberOf ais:bc_position .
 
 
 # --- Derivations ---
 
-ais:derive_timestamp a sdl:Derivation ;
+ais:derive_timestamp a mnf:Derivation ;
     rdfs:comment "timestamp is parsed from base_date_time string." ;
-    sdl:derivedColumn ais:bc_timestamp ;
-    sdl:sourceColumn ais:bc_base_date_time ;
-    sdl:derivationFunction ais:ParseTimestamp ;
-    sdl:hasDerivationProperty sdl:Deterministic ;
-    sdl:hasDerivationProperty sdl:Invertible .
+    mnf:derivedColumn ais:bc_timestamp ;
+    mnf:sourceColumn ais:bc_base_date_time ;
+    mnf:derivationFunction ais:ParseTimestamp ;
+    mnf:hasDerivationProperty mnf:Deterministic ;
+    mnf:hasDerivationProperty mnf:Invertible .
 
-ais:derive_geometry a sdl:Derivation ;
+ais:derive_geometry a mnf:Derivation ;
     rdfs:comment "geometry is WKB Point constructed from (latitude, longitude)." ;
-    sdl:derivedColumn ais:bc_geometry ;
-    sdl:sourceColumn ais:bc_latitude ;
-    sdl:sourceColumn ais:bc_longitude ;
-    sdl:derivationFunction ais:PointFromWGS84 ;
-    sdl:hasDerivationProperty sdl:Deterministic ;
-    sdl:hasDerivationProperty sdl:Invertible .
+    mnf:derivedColumn ais:bc_geometry ;
+    mnf:sourceColumn ais:bc_latitude ;
+    mnf:sourceColumn ais:bc_longitude ;
+    mnf:derivationFunction ais:PointFromWGS84 ;
+    mnf:hasDerivationProperty mnf:Deterministic ;
+    mnf:hasDerivationProperty mnf:Invertible .
 
-ais:derive_h3 a sdl:Derivation ;
+ais:derive_h3 a mnf:Derivation ;
     rdfs:comment "h3_res15 is computed from (latitude, longitude) at resolution 15." ;
-    sdl:derivedColumn ais:bc_h3_res15 ;
-    sdl:sourceColumn ais:bc_latitude ;
-    sdl:sourceColumn ais:bc_longitude ;
-    sdl:derivationFunction ais:H3IndexFromWGS84Res15 ;
-    sdl:hasDerivationProperty sdl:Deterministic ;
-    sdl:hasDerivationProperty sdl:Lossy ;
+    mnf:derivedColumn ais:bc_h3_res15 ;
+    mnf:sourceColumn ais:bc_latitude ;
+    mnf:sourceColumn ais:bc_longitude ;
+    mnf:derivationFunction ais:H3IndexFromWGS84Res15 ;
+    mnf:hasDerivationProperty mnf:Deterministic ;
+    mnf:hasDerivationProperty mnf:Lossy ;
     rdfs:comment "Lossy: multiple lat/lon pairs map to same H3 cell." .
 
 
 # --- Physical layout ---
 
-ais:bc_layout a sdl:PhysicalLayout ;
-    sdl:fileFormat sdl:Parquet ;
-    sdl:hasRowOrdering ais:bc_ordering .
+ais:bc_layout a mnf:PhysicalLayout ;
+    mnf:fileFormat mnf:Parquet ;
+    mnf:hasRowOrdering ais:bc_ordering .
 
-ais:bc_ordering a sdl:RowOrdering ;
-    sdl:hasOrderingKey [
-        a sdl:OrderingKey ;
-        sdl:keyColumn ais:bc_mmsi ;
-        sdl:keyDirection sdl:Ascending ;
-        sdl:keyPrecedence 1 ;
-        sdl:orderingSemantic sdl:ClusteringForIndex ;
+ais:bc_ordering a mnf:RowOrdering ;
+    mnf:hasOrderingKey [
+        a mnf:OrderingKey ;
+        mnf:keyColumn ais:bc_mmsi ;
+        mnf:keyDirection mnf:Ascending ;
+        mnf:keyPrecedence 1 ;
+        mnf:orderingSemantic mnf:ClusteringForIndex ;
         rdfs:comment """Primary sort by MMSI clusters all broadcasts for a
             given vessel contiguously. This enables Parquet row group
             min/max indexes to rapidly skip irrelevant groups when
             filtering by MMSI. The sort direction is arbitrary; the
             clustering is what matters."""
     ] ;
-    sdl:hasOrderingKey [
-        a sdl:OrderingKey ;
-        sdl:keyColumn ais:bc_timestamp ;
-        sdl:keyDirection sdl:Ascending ;
-        sdl:keyPrecedence 2 ;
-        sdl:orderingSemantic sdl:MeaningfulSequence ;
+    mnf:hasOrderingKey [
+        a mnf:OrderingKey ;
+        mnf:keyColumn ais:bc_timestamp ;
+        mnf:keyDirection mnf:Ascending ;
+        mnf:keyPrecedence 2 ;
+        mnf:orderingSemantic mnf:MeaningfulSequence ;
         rdfs:comment """Within each MMSI cluster, broadcasts are in
             chronological order. This ordering is both performance-critical
             (enables timestamp range pruning within a vessel) and
@@ -484,11 +484,11 @@ ais:bc_ordering a sdl:RowOrdering ;
 
 # --- Partition scheme ---
 
-ais:daily_date_partition a sdl:PartitionScheme ;
-    sdl:partitionColumn ais:bc_date ;
-    sdl:partitionGranularity sdl:Daily ;
-    sdl:pathTemplate "broadcasts/{year}/ais-{date}.parquet" ;
-    sdl:redundantPartitionKey ais:bc_date ;
+ais:daily_date_partition a mnf:PartitionScheme ;
+    mnf:partitionColumn ais:bc_date ;
+    mnf:partitionGranularity mnf:Daily ;
+    mnf:pathTemplate "broadcasts/{year}/ais-{date}.parquet" ;
+    mnf:redundantPartitionKey ais:bc_date ;
     rdfs:comment """One file per UTC day. The 'date' column in each file is
         constant and matches the file's date. Path pattern uses ISO date
         format (YYYY-MM-DD) for {date} and four-digit year for {year}.""" .
@@ -496,43 +496,43 @@ ais:daily_date_partition a sdl:PartitionScheme ;
 
 # --- Constraints on the broadcast dataset ---
 
-ais:bc_date_constant a sdl:DatasetConstraint ;
-    sdl:appliesToColumn ais:bc_date ;
+ais:bc_date_constant a mnf:DatasetConstraint ;
+    mnf:appliesToColumn ais:bc_date ;
     rdfs:label "Date column is constant within each file" ;
     rdfs:comment """Every row in a single Parquet file has the same 'date'
         value, matching the file's partition date.""" ;
-    sdl:computationalProfile sdl:FullScanRequired ;
-    sdl:validator [
-        a sdl:DuckDBValidator ;
-        sdl:query "SELECT COUNT(DISTINCT date) = 1 FROM data"
+    mnf:computationalProfile mnf:FullScanRequired ;
+    mnf:validator [
+        a mnf:DuckDBValidator ;
+        mnf:query "SELECT COUNT(DISTINCT date) = 1 FROM data"
     ] .
 
-ais:bc_timestamp_within_date a sdl:DatasetConstraint ;
-    sdl:appliesToColumn ais:bc_timestamp ;
+ais:bc_timestamp_within_date a mnf:DatasetConstraint ;
+    mnf:appliesToColumn ais:bc_timestamp ;
     rdfs:label "All timestamps fall within the partition date (UTC)" ;
     rdfs:comment """The timestamp column values should have a UTC date
         matching the partition date column.""" ;
-    sdl:computationalProfile sdl:FullScanRequired .
+    mnf:computationalProfile mnf:FullScanRequired .
 
-ais:bc_ordered_within_mmsi a sdl:Constraint ;
-    a sdl:Grouped ;
-    sdl:groupingColumn ais:bc_mmsi ;
-    sdl:innerConstraint [
-        a sdl:Ordered ;
-        sdl:orderingColumn ais:bc_timestamp ;
-        sdl:innerConstraint ais:MonotonicallyNonDecreasing
+ais:bc_ordered_within_mmsi a mnf:Constraint ;
+    a mnf:Grouped ;
+    mnf:groupingColumn ais:bc_mmsi ;
+    mnf:innerConstraint [
+        a mnf:Ordered ;
+        mnf:orderingColumn ais:bc_timestamp ;
+        mnf:innerConstraint ais:MonotonicallyNonDecreasing
     ] ;
     rdfs:label "Timestamps non-decreasing within each MMSI group" ;
-    sdl:computationalProfile sdl:SequentialScan .
+    mnf:computationalProfile mnf:SequentialScan .
 
 # Leaf constraint: monotonically non-decreasing sequence
-ais:MonotonicallyNonDecreasing a sdl:SequenceConstraint ;
+ais:MonotonicallyNonDecreasing a mnf:SequenceConstraint ;
     rdfs:label "Values are monotonically non-decreasing" ;
-    sdl:computationalProfile sdl:SequentialScan ;
-    sdl:validator [
-        a sdl:PythonValidator ;
-        sdl:module "sdl.validators.sequence" ;
-        sdl:function "check_monotonic_nondecreasing"
+    mnf:computationalProfile mnf:SequentialScan ;
+    mnf:validator [
+        a mnf:PythonValidator ;
+        mnf:module "manifest.validators.sequence" ;
+        mnf:function "check_monotonic_nondecreasing"
     ] .
 
 
@@ -540,15 +540,15 @@ ais:MonotonicallyNonDecreasing a sdl:SequenceConstraint ;
 # 2b. Daily Index Dataset
 # -----------------------------------------------------------------------------
 
-ais:DailyIndex a sdl:Dataset ;
+ais:DailyIndex a mnf:Dataset ;
     rdfs:label "AIS Daily Vessel Index" ;
     rdfs:comment """One Parquet file per day, one row per MMSI observed that
         day. Summarises the broadcast data for quick vessel-level queries
         across the full time range.""" ;
-    sdl:rowSemantics sdl:AggregateRow ;
-    sdl:schemaStability sdl:FixedSchema ;
+    mnf:rowSemantics mnf:AggregateRow ;
+    mnf:schemaStability mnf:FixedSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         ais:ix_mmsi ,
         ais:ix_date ,
         ais:ix_vessel_names ,
@@ -578,147 +578,147 @@ ais:DailyIndex a sdl:Dataset ;
         ais:ix_max_inter_msg_speed_ms ,
         ais:ix_status_codes ;
 
-    sdl:partitionedBy ais:daily_date_partition ;
-    sdl:hasPhysicalLayout [
-        a sdl:PhysicalLayout ;
-        sdl:fileFormat sdl:Parquet
+    mnf:partitionedBy ais:daily_date_partition ;
+    mnf:hasPhysicalLayout [
+        a mnf:PhysicalLayout ;
+        mnf:fileFormat mnf:Parquet
     ] .
 
 # Companion relationship
-ais:DailyIndex sdl:companionOf ais:DailyBroadcasts .
+ais:DailyIndex mnf:companionOf ais:DailyBroadcasts .
 
 
 # --- Index column definitions (abbreviated: showing types and semantics) ---
 
-ais:ix_mmsi a sdl:Column ;
-    sdl:columnName "mmsi" ;
-    sdl:physicalType sdl:Integer ;
-    sdl:semanticType ais:MMSI .
+ais:ix_mmsi a mnf:Column ;
+    mnf:columnName "mmsi" ;
+    mnf:physicalType mnf:Integer ;
+    mnf:semanticType ais:MMSI .
 
-ais:ix_date a sdl:Column ;
-    sdl:columnName "date" ;
-    sdl:physicalType sdl:Date ;
-    sdl:semanticType ais:PartitionDate .
+ais:ix_date a mnf:Column ;
+    mnf:columnName "date" ;
+    mnf:physicalType mnf:Date ;
+    mnf:semanticType ais:PartitionDate .
 
-ais:ix_vessel_names a sdl:Column ;
-    sdl:columnName "vessel_names" ;
-    sdl:physicalType sdl:VarcharList ;
+ais:ix_vessel_names a mnf:Column ;
+    mnf:columnName "vessel_names" ;
+    mnf:physicalType mnf:VarcharList ;
     rdfs:comment "Distinct vessel names broadcast by this MMSI on this day." .
 
-ais:ix_imos a sdl:Column ;
-    sdl:columnName "imos" ;
-    sdl:physicalType sdl:VarcharList .
+ais:ix_imos a mnf:Column ;
+    mnf:columnName "imos" ;
+    mnf:physicalType mnf:VarcharList .
 
-ais:ix_call_signs a sdl:Column ;
-    sdl:columnName "call_signs" ;
-    sdl:physicalType sdl:VarcharList .
+ais:ix_call_signs a mnf:Column ;
+    mnf:columnName "call_signs" ;
+    mnf:physicalType mnf:VarcharList .
 
-ais:ix_vessel_types a sdl:Column ;
-    sdl:columnName "vessel_types" ;
-    sdl:physicalType sdl:IntegerList .
+ais:ix_vessel_types a mnf:Column ;
+    mnf:columnName "vessel_types" ;
+    mnf:physicalType mnf:IntegerList .
 
-ais:ix_cargos a sdl:Column ;
-    sdl:columnName "cargos" ;
-    sdl:physicalType sdl:IntegerList .
+ais:ix_cargos a mnf:Column ;
+    mnf:columnName "cargos" ;
+    mnf:physicalType mnf:IntegerList .
 
-ais:ix_lengths a sdl:Column ;
-    sdl:columnName "lengths" ;
-    sdl:physicalType sdl:DoubleList .
+ais:ix_lengths a mnf:Column ;
+    mnf:columnName "lengths" ;
+    mnf:physicalType mnf:DoubleList .
 
-ais:ix_widths a sdl:Column ;
-    sdl:columnName "widths" ;
-    sdl:physicalType sdl:DoubleList .
+ais:ix_widths a mnf:Column ;
+    mnf:columnName "widths" ;
+    mnf:physicalType mnf:DoubleList .
 
-ais:ix_drafts a sdl:Column ;
-    sdl:columnName "drafts" ;
-    sdl:physicalType sdl:DoubleList .
+ais:ix_drafts a mnf:Column ;
+    mnf:columnName "drafts" ;
+    mnf:physicalType mnf:DoubleList .
 
-ais:ix_transceiver_classes a sdl:Column ;
-    sdl:columnName "transceiver_classes" ;
-    sdl:physicalType sdl:VarcharList .
+ais:ix_transceiver_classes a mnf:Column ;
+    mnf:columnName "transceiver_classes" ;
+    mnf:physicalType mnf:VarcharList .
 
-ais:ix_message_count a sdl:Column ;
-    sdl:columnName "message_count" ;
-    sdl:physicalType sdl:BigInt ;
-    sdl:semanticType ais:MessageCount .
+ais:ix_message_count a mnf:Column ;
+    mnf:columnName "message_count" ;
+    mnf:physicalType mnf:BigInt ;
+    mnf:semanticType ais:MessageCount .
 
-ais:ix_first_timestamp a sdl:Column ;
-    sdl:columnName "first_timestamp" ;
-    sdl:physicalType sdl:TimestampTZ ;
-    sdl:semanticType ais:AISTimestamp .
+ais:ix_first_timestamp a mnf:Column ;
+    mnf:columnName "first_timestamp" ;
+    mnf:physicalType mnf:TimestampTZ ;
+    mnf:semanticType ais:AISTimestamp .
 
-ais:ix_last_timestamp a sdl:Column ;
-    sdl:columnName "last_timestamp" ;
-    sdl:physicalType sdl:TimestampTZ ;
-    sdl:semanticType ais:AISTimestamp .
+ais:ix_last_timestamp a mnf:Column ;
+    mnf:columnName "last_timestamp" ;
+    mnf:physicalType mnf:TimestampTZ ;
+    mnf:semanticType ais:AISTimestamp .
 
-ais:ix_duration_s a sdl:Column ;
-    sdl:columnName "duration_s" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:DurationSeconds .
+ais:ix_duration_s a mnf:Column ;
+    mnf:columnName "duration_s" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:DurationSeconds .
 
-ais:ix_centroid_lat a sdl:Column ;
-    sdl:columnName "centroid_lat" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Latitude .
+ais:ix_centroid_lat a mnf:Column ;
+    mnf:columnName "centroid_lat" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Latitude .
 
-ais:ix_centroid_lon a sdl:Column ;
-    sdl:columnName "centroid_lon" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Longitude .
+ais:ix_centroid_lon a mnf:Column ;
+    mnf:columnName "centroid_lon" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Longitude .
 
-ais:ix_min_lat a sdl:Column ;
-    sdl:columnName "min_lat" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Latitude .
+ais:ix_min_lat a mnf:Column ;
+    mnf:columnName "min_lat" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Latitude .
 
-ais:ix_max_lat a sdl:Column ;
-    sdl:columnName "max_lat" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Latitude .
+ais:ix_max_lat a mnf:Column ;
+    mnf:columnName "max_lat" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Latitude .
 
-ais:ix_min_lon a sdl:Column ;
-    sdl:columnName "min_lon" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Longitude .
+ais:ix_min_lon a mnf:Column ;
+    mnf:columnName "min_lon" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Longitude .
 
-ais:ix_max_lon a sdl:Column ;
-    sdl:columnName "max_lon" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:WGS84Longitude .
+ais:ix_max_lon a mnf:Column ;
+    mnf:columnName "max_lon" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:WGS84Longitude .
 
-ais:ix_distance_m a sdl:Column ;
-    sdl:columnName "distance_m" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:DistanceMetres .
+ais:ix_distance_m a mnf:Column ;
+    mnf:columnName "distance_m" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:DistanceMetres .
 
-ais:ix_h3_cell_count a sdl:Column ;
-    sdl:columnName "h3_cell_count" ;
-    sdl:physicalType sdl:BigInt .
+ais:ix_h3_cell_count a mnf:Column ;
+    mnf:columnName "h3_cell_count" ;
+    mnf:physicalType mnf:BigInt .
 
-ais:ix_sog_min a sdl:Column ;
-    sdl:columnName "sog_min" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:SpeedOverGround .
+ais:ix_sog_min a mnf:Column ;
+    mnf:columnName "sog_min" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:SpeedOverGround .
 
-ais:ix_sog_max a sdl:Column ;
-    sdl:columnName "sog_max" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:SpeedOverGround .
+ais:ix_sog_max a mnf:Column ;
+    mnf:columnName "sog_max" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:SpeedOverGround .
 
-ais:ix_sog_mean a sdl:Column ;
-    sdl:columnName "sog_mean" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:SpeedOverGround .
+ais:ix_sog_mean a mnf:Column ;
+    mnf:columnName "sog_mean" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:SpeedOverGround .
 
-ais:ix_max_inter_msg_speed_ms a sdl:Column ;
-    sdl:columnName "max_inter_msg_speed_ms" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType ais:SpeedMetresPerSecond .
+ais:ix_max_inter_msg_speed_ms a mnf:Column ;
+    mnf:columnName "max_inter_msg_speed_ms" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType ais:SpeedMetresPerSecond .
 
-ais:ix_status_codes a sdl:Column ;
-    sdl:columnName "status_codes" ;
-    sdl:physicalType sdl:IntegerList .
+ais:ix_status_codes a mnf:Column ;
+    mnf:columnName "status_codes" ;
+    mnf:physicalType mnf:IntegerList .
 
 
 # =============================================================================
@@ -729,203 +729,203 @@ ais:ix_status_codes a sdl:Column ;
 # declared aggregation function, grouped by MMSI within each daily file.
 # =============================================================================
 
-ais:broadcasts_to_index a sdl:AggregationRelationship ;
-    sdl:sourceDataset ais:DailyBroadcasts ;
-    sdl:targetDataset ais:DailyIndex ;
-    sdl:groupByColumn ais:bc_mmsi ;
+ais:broadcasts_to_index a mnf:AggregationRelationship ;
+    mnf:sourceDataset ais:DailyBroadcasts ;
+    mnf:targetDataset ais:DailyIndex ;
+    mnf:groupByColumn ais:bc_mmsi ;
     rdfs:comment """The daily index is a per-MMSI aggregation of the daily
         broadcasts. Both datasets share the daily partition scheme, and
         aggregation happens within each partition independently.""" ;
 
     # --- Simple aggregations ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_message_count ;
-        sdl:aggregationSourceColumn ais:bc_mmsi ;  # any column; it's COUNT(*)
-        sdl:aggregationFunction sdl:Count
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_message_count ;
+        mnf:aggregationSourceColumn ais:bc_mmsi ;  # any column; it's COUNT(*)
+        mnf:aggregationFunction mnf:Count
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_first_timestamp ;
-        sdl:aggregationSourceColumn ais:bc_timestamp ;
-        sdl:aggregationFunction sdl:Min
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_first_timestamp ;
+        mnf:aggregationSourceColumn ais:bc_timestamp ;
+        mnf:aggregationFunction mnf:Min
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_last_timestamp ;
-        sdl:aggregationSourceColumn ais:bc_timestamp ;
-        sdl:aggregationFunction sdl:Max
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_last_timestamp ;
+        mnf:aggregationSourceColumn ais:bc_timestamp ;
+        mnf:aggregationFunction mnf:Max
     ] ;
 
     # --- Distinct list aggregations ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_vessel_names ;
-        sdl:aggregationSourceColumn ais:bc_vessel_name ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_vessel_names ;
+        mnf:aggregationSourceColumn ais:bc_vessel_name ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_imos ;
-        sdl:aggregationSourceColumn ais:bc_imo ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_imos ;
+        mnf:aggregationSourceColumn ais:bc_imo ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_call_signs ;
-        sdl:aggregationSourceColumn ais:bc_call_sign ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_call_signs ;
+        mnf:aggregationSourceColumn ais:bc_call_sign ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_vessel_types ;
-        sdl:aggregationSourceColumn ais:bc_vessel_type ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_vessel_types ;
+        mnf:aggregationSourceColumn ais:bc_vessel_type ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_cargos ;
-        sdl:aggregationSourceColumn ais:bc_cargo ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_cargos ;
+        mnf:aggregationSourceColumn ais:bc_cargo ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_lengths ;
-        sdl:aggregationSourceColumn ais:bc_length ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_lengths ;
+        mnf:aggregationSourceColumn ais:bc_length ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_widths ;
-        sdl:aggregationSourceColumn ais:bc_width ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_widths ;
+        mnf:aggregationSourceColumn ais:bc_width ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_drafts ;
-        sdl:aggregationSourceColumn ais:bc_draft ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_drafts ;
+        mnf:aggregationSourceColumn ais:bc_draft ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_transceiver_classes ;
-        sdl:aggregationSourceColumn ais:bc_transceiver ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_transceiver_classes ;
+        mnf:aggregationSourceColumn ais:bc_transceiver ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_status_codes ;
-        sdl:aggregationSourceColumn ais:bc_status ;
-        sdl:aggregationFunction sdl:DistinctList
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_status_codes ;
+        mnf:aggregationSourceColumn ais:bc_status ;
+        mnf:aggregationFunction mnf:DistinctList
     ] ;
 
     # --- Spatial extrema ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_min_lat ;
-        sdl:aggregationSourceColumn ais:bc_latitude ;
-        sdl:aggregationFunction sdl:Min
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_min_lat ;
+        mnf:aggregationSourceColumn ais:bc_latitude ;
+        mnf:aggregationFunction mnf:Min
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_max_lat ;
-        sdl:aggregationSourceColumn ais:bc_latitude ;
-        sdl:aggregationFunction sdl:Max
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_max_lat ;
+        mnf:aggregationSourceColumn ais:bc_latitude ;
+        mnf:aggregationFunction mnf:Max
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_min_lon ;
-        sdl:aggregationSourceColumn ais:bc_longitude ;
-        sdl:aggregationFunction sdl:Min
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_min_lon ;
+        mnf:aggregationSourceColumn ais:bc_longitude ;
+        mnf:aggregationFunction mnf:Min
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_max_lon ;
-        sdl:aggregationSourceColumn ais:bc_longitude ;
-        sdl:aggregationFunction sdl:Max
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_max_lon ;
+        mnf:aggregationSourceColumn ais:bc_longitude ;
+        mnf:aggregationFunction mnf:Max
     ] ;
 
     # --- Spatial means ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_centroid_lat ;
-        sdl:aggregationSourceColumn ais:bc_latitude ;
-        sdl:aggregationFunction sdl:Mean ;
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_centroid_lat ;
+        mnf:aggregationSourceColumn ais:bc_latitude ;
+        mnf:aggregationFunction mnf:Mean ;
         rdfs:comment """Arithmetic mean of latitudes. This is an approximation
             of the centroid; exact centroid would need spherical geometry."""
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_centroid_lon ;
-        sdl:aggregationSourceColumn ais:bc_longitude ;
-        sdl:aggregationFunction sdl:Mean ;
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_centroid_lon ;
+        mnf:aggregationSourceColumn ais:bc_longitude ;
+        mnf:aggregationFunction mnf:Mean ;
         rdfs:comment """Arithmetic mean of longitudes. Known issue: wraps
             incorrectly near the antimeridian."""
     ] ;
 
     # --- Speed stats ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_sog_min ;
-        sdl:aggregationSourceColumn ais:bc_sog ;
-        sdl:aggregationFunction sdl:Min
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_sog_min ;
+        mnf:aggregationSourceColumn ais:bc_sog ;
+        mnf:aggregationFunction mnf:Min
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_sog_max ;
-        sdl:aggregationSourceColumn ais:bc_sog ;
-        sdl:aggregationFunction sdl:Max
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_sog_max ;
+        mnf:aggregationSourceColumn ais:bc_sog ;
+        mnf:aggregationFunction mnf:Max
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_sog_mean ;
-        sdl:aggregationSourceColumn ais:bc_sog ;
-        sdl:aggregationFunction sdl:Mean
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_sog_mean ;
+        mnf:aggregationSourceColumn ais:bc_sog ;
+        mnf:aggregationFunction mnf:Mean
     ] ;
 
     # --- H3 cell count ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_h3_cell_count ;
-        sdl:aggregationSourceColumn ais:bc_h3_res15 ;
-        sdl:aggregationFunction sdl:CountDistinct
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_h3_cell_count ;
+        mnf:aggregationSourceColumn ais:bc_h3_res15 ;
+        mnf:aggregationFunction mnf:CountDistinct
     ] ;
 
     # --- Derived aggregations (require more than one step) ---
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_duration_s ;
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_duration_s ;
         rdfs:comment """Derived: EXTRACT(EPOCH FROM max(timestamp) - min(timestamp)).
             Not a simple single-column aggregation; it's the difference
             between two aggregates.""" ;
-        sdl:aggregationFunction ais:DurationBetweenExtrema ;
-        sdl:aggregationSourceColumn ais:bc_timestamp
+        mnf:aggregationFunction ais:DurationBetweenExtrema ;
+        mnf:aggregationSourceColumn ais:bc_timestamp
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_distance_m ;
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_distance_m ;
         rdfs:comment """Haversine distance between first and last positions
             (ordered by timestamp). A sequential aggregation requiring
             within-group ordering.""" ;
-        sdl:aggregationFunction ais:HaversineFirstToLast ;
-        sdl:aggregationSourceColumn ais:bc_latitude ;
-        sdl:aggregationSourceColumn ais:bc_longitude ;
-        sdl:withinGroupOrdering ais:bc_timestamp
+        mnf:aggregationFunction ais:HaversineFirstToLast ;
+        mnf:aggregationSourceColumn ais:bc_latitude ;
+        mnf:aggregationSourceColumn ais:bc_longitude ;
+        mnf:withinGroupOrdering ais:bc_timestamp
     ] ;
 
-    sdl:hasAggregatedColumn [
-        sdl:targetColumn ais:ix_max_inter_msg_speed_ms ;
+    mnf:hasAggregatedColumn [
+        mnf:targetColumn ais:ix_max_inter_msg_speed_ms ;
         rdfs:comment """Maximum implied speed between any two consecutive
             messages for this MMSI, in m/s. Computed as:
             max over consecutive pairs of (haversine_distance / time_delta).
             A windowed sequential aggregation. Useful as a data quality
             indicator: implausibly high values suggest MMSI reuse or
             erroneous positions.""" ;
-        sdl:aggregationFunction ais:MaxConsecutiveImpliedSpeed ;
-        sdl:aggregationSourceColumn ais:bc_latitude ;
-        sdl:aggregationSourceColumn ais:bc_longitude ;
-        sdl:aggregationSourceColumn ais:bc_timestamp ;
-        sdl:withinGroupOrdering ais:bc_timestamp
+        mnf:aggregationFunction ais:MaxConsecutiveImpliedSpeed ;
+        mnf:aggregationSourceColumn ais:bc_latitude ;
+        mnf:aggregationSourceColumn ais:bc_longitude ;
+        mnf:aggregationSourceColumn ais:bc_timestamp ;
+        mnf:withinGroupOrdering ais:bc_timestamp
     ] .
 
 
@@ -934,53 +934,53 @@ ais:broadcasts_to_index a sdl:AggregationRelationship ;
 ais:DurationBetweenExtrema a rdfs:Resource ;
     rdfs:label "Duration between min and max timestamps" ;
     rdfs:comment "EXTRACT(EPOCH FROM MAX(col) - MIN(col))" ;
-    sdl:computationalProfile sdl:FullScanRequired .
+    mnf:computationalProfile mnf:FullScanRequired .
 
 ais:HaversineFirstToLast a rdfs:Resource ;
     rdfs:label "Haversine distance from first to last position" ;
     rdfs:comment """Requires ordering by timestamp, takes first and last
         (lat, lon) pair, computes haversine distance in metres.""" ;
-    sdl:computationalProfile sdl:SequentialScan .
+    mnf:computationalProfile mnf:SequentialScan .
 
 ais:MaxConsecutiveImpliedSpeed a rdfs:Resource ;
     rdfs:label "Maximum implied speed between consecutive messages" ;
     rdfs:comment """For each consecutive pair of messages (ordered by timestamp),
         computes haversine_distance / time_delta. Returns the maximum.
         This is a windowed aggregation over consecutive pairs.""" ;
-    sdl:computationalProfile sdl:SequentialScan .
+    mnf:computationalProfile mnf:SequentialScan .
 
 
 # =============================================================================
 # PART 4: Provenance and Known Deficiencies
 # =============================================================================
 
-ais:noaa_provenance a sdl:Provenance ;
-    sdl:source <https://marinecadastre.gov/ais/> ;
-    sdl:sourceDescription """NOAA Marine Cadastre AIS data. Published as one
+ais:noaa_provenance a mnf:Provenance ;
+    mnf:source <https://marinecadastre.gov/ais/> ;
+    mnf:sourceDescription """NOAA Marine Cadastre AIS data. Published as one
         compressed CSV per day. Covers US waters and beyond, sourced from
         US Coast Guard terrestrial and satellite AIS receivers.""" ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "denormalization" ;
-        sdl:transformationDescription """NOAA merges static vessel data (name,
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "denormalization" ;
+        mnf:transformationDescription """NOAA merges static vessel data (name,
             IMO, dimensions, etc.) from AIS Message Types 5/24 into
             position report rows (Message Types 1/2/3/18/19). Original
             message type distinction is lost."""
     ] ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "downsampling" ;
-        sdl:transformationDescription """NOAA appears to discard some position
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "downsampling" ;
+        mnf:transformationDescription """NOAA appears to discard some position
             reports, resulting in lower temporal resolution than the raw
             AIS feed. The exact filtering criteria are not documented."""
     ] ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "local_preprocessing" ;
-        sdl:transformationDescription """CSV-to-Parquet conversion with added
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "local_preprocessing" ;
+        mnf:transformationDescription """CSV-to-Parquet conversion with added
             columns: parsed timestamp (from base_date_time string),
             WKB point geometry (from lat/lon), H3 cell index at resolution
             15 (from lat/lon), date column (partition key). Rows ordered
@@ -988,29 +988,29 @@ ais:noaa_provenance a sdl:Provenance ;
     ] .
 
 
-ais:deficiency_missing_positions a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """Temporal gaps exist within vessel trajectories
+ais:deficiency_missing_positions a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Temporal gaps exist within vessel trajectories
         due to NOAA's undocumented downsampling. Trajectory-based analyses
         (distance, speed) may be inaccurate for affected segments.""" ;
-    sdl:impact """Distance and duration calculations will underestimate true
+    mnf:impact """Distance and duration calculations will underestimate true
         values. Speed calculations between widely-spaced messages may not
         reflect actual vessel behavior.""" ;
-    sdl:severity sdl:Moderate .
+    mnf:severity mnf:Moderate .
 
-ais:deficiency_denormalized a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """Static vessel data is denormalized into position
+ais:deficiency_denormalized a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Static vessel data is denormalized into position
         rows. A vessel's name/IMO/dimensions may appear differently across
         rows due to broadcast timing and the merge process.""" ;
-    sdl:impact """Static fields in any single row may be stale or from a
+    mnf:impact """Static fields in any single row may be stale or from a
         different time than the position report. The index file's distinct
         lists mitigate this by preserving all observed values.""" ;
-    sdl:severity sdl:Minor .
+    mnf:severity mnf:Minor .
 
-ais:deficiency_mmsi_identity a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """MMSI does not reliably identify a single vessel.
+ais:deficiency_mmsi_identity a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """MMSI does not reliably identify a single vessel.
         Known issues: MMSI reuse between vessels, multiple vessels sharing
         an MMSI simultaneously, default/test MMSIs, and spoofing.""" ;
-    sdl:impact """Grouping by MMSI may conflate different vessels. The
+    mnf:impact """Grouping by MMSI may conflate different vessels. The
         max_inter_msg_speed_ms index column can flag likely cases (an
         implausibly high implied speed suggests MMSI reuse).""" ;
-    sdl:severity sdl:Moderate .
+    mnf:severity mnf:Moderate .

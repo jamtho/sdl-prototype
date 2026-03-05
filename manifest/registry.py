@@ -1,7 +1,7 @@
 """
-Validator registry — connects SDL constraint declarations to executable validators.
+Validator registry — connects Manifest constraint declarations to executable validators.
 
-Validators register themselves against SDL URIs (physical types, semantic types,
+Validators register themselves against Manifest URIs (physical types, semantic types,
 constraint types, etc.). The engine queries the registry to find which validators
 apply to a given dataset.
 """
@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
-from sdl.model import Attestation, ComputationalProfile
+from manifest.model import Attestation, ComputationalProfile
 
 
 class ValidatorKind(Enum):
@@ -51,7 +51,7 @@ class RegisteredValidator:
 
 class ValidatorRegistry:
     """
-    Central registry mapping SDL concepts to validators.
+    Central registry mapping Manifest concepts to validators.
 
     Validators can be registered:
     - By kind (schema, value_range, ordering, etc.)

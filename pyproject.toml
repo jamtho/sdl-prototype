@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sdl-toolkit"
+name = "manifest-toolkit"
 version = "0.1.0"
-description = "Structural Data Language — describe, validate, and integrate data with formal semantics"
+description = "Manifest — describe, validate, and integrate data with formal semantics"
 requires-python = ">=3.11"
 dependencies = [
     "rdflib>=7.0",
@@ -18,10 +18,10 @@ dependencies = [
 dev = ["pytest", "h3"]
 
 [project.scripts]
-sdl = "sdl.cli:main"
+mnf = "manifest.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["sdl*"]
+include = ["manifest*"]
 
 [tool.setuptools.package-data]
-sdl = ["py.typed"]
+manifest = ["py.typed"]

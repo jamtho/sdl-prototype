@@ -13,7 +13,7 @@ from typing import Any
 
 import duckdb
 
-from sdl.model import (
+from manifest.model import (
     AggregatedColumnInfo,
     AggregationInfo,
     Attestation,
@@ -21,16 +21,16 @@ from sdl.model import (
     ValidationResult,
 )
 
-# Standard SDL aggregation function URIs mapped to DuckDB SQL expressions.
+# Standard MNF aggregation function URIs mapped to DuckDB SQL expressions.
 # The placeholder {col} is replaced with the actual column name.
 STANDARD_AGG_SQL: dict[str, str] = {
-    "sdl:Min": 'MIN("{col}")',
-    "sdl:Max": 'MAX("{col}")',
-    "sdl:Mean": 'AVG("{col}")',
-    "sdl:Sum": 'SUM("{col}")',
-    "sdl:Count": "COUNT(*)",
-    "sdl:CountDistinct": 'COUNT(DISTINCT "{col}")',
-    "sdl:DistinctList": 'LIST(DISTINCT "{col}")',
+    "mnf:Min": 'MIN("{col}")',
+    "mnf:Max": 'MAX("{col}")',
+    "mnf:Mean": 'AVG("{col}")',
+    "mnf:Sum": 'SUM("{col}")',
+    "mnf:Count": "COUNT(*)",
+    "mnf:CountDistinct": 'COUNT(DISTINCT "{col}")',
+    "mnf:DistinctList": 'LIST(DISTINCT "{col}")',
 }
 
 

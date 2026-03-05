@@ -1,12 +1,12 @@
-# SDL Toolkit
+# Manifest Toolkit
 
-**Structural Data Language** — describe, validate, and integrate data with formal semantics.
+**Manifest** — describe, validate, and integrate data with formal semantics.
 
-SDL sits between a schema and a full ontology. It captures structural knowledge about data that goes beyond column names and types: semantic types, value ranges, physical ordering, derivation relationships, aggregation dependencies, provenance, and known deficiencies.
+Manifest sits between a schema and a full ontology. It captures structural knowledge about data that goes beyond column names and types: semantic types, value ranges, physical ordering, derivation relationships, aggregation dependencies, provenance, and known deficiencies.
 
 ## Motivation
 
-Data formats like Parquet tell you column names and physical types. SDL lets you express everything else a machine (or an LLM) would need to know to work with your data correctly:
+Data formats like Parquet tell you column names and physical types. Manifest lets you express everything else a machine (or an LLM) would need to know to work with your data correctly:
 
 - That `mmsi` **must** be stored as `INTEGER`, not `VARCHAR` — and that a prediction-market `side` column must be one of `{"BUY", "SELL"}`, not just a string (type and enum constraints caught from metadata alone)
 - That `conditionId` in a trades dataset and `condition_id` in a holders dataset refer to the same logical entity, even though column names differ
@@ -31,32 +31,32 @@ All of this is expressed as RDF in Turtle files, queryable, composable, and mach
 # Install (editable, from the repo root)
 uv sync  # or: pip install -e .
 
-# See what the SDL graph describes (no data needed)
-sdl describe --vocab vocabularies/ --desc descriptions/
+# See what the Manifest graph describes (no data needed)
+mnf describe --vocab vocabularies/ --desc descriptions/
 
 # Generate browsable markdown tables from the descriptions
-sdl generate-docs --vocab vocabularies/ --desc descriptions/ --out descriptions/generated/
+mnf generate-docs --vocab vocabularies/ --desc descriptions/ --out descriptions/generated/
 
 # Instant schema check — catches type mismatches from Parquet metadata alone
-sdl validate path/to/ais-2025-01-01.parquet \
+mnf validate path/to/ais-2025-01-01.parquet \
     --dataset ais:DailyBroadcasts \
     --vocab vocabularies/ --desc descriptions/ \
     --max-level schema
 
 # Full validation — value ranges, ordering, monotonicity
-sdl validate path/to/ais-2025-01-01.parquet \
+mnf validate path/to/ais-2025-01-01.parquet \
     --dataset ais:DailyBroadcasts \
     --vocab vocabularies/ --desc descriptions/ \
     --verbose
 
 # Validate a Polymarket snapshot file
-sdl validate path/to/gamma-markets/hour=00.parquet \
+mnf validate path/to/gamma-markets/hour=00.parquet \
     --dataset pm:MarketSnapshots \
     --vocab vocabularies/ --desc descriptions/ \
     --verbose
 
 # With companion index file — also checks aggregation consistency
-sdl validate path/to/broadcasts/ais-2025-01-01.parquet \
+mnf validate path/to/broadcasts/ais-2025-01-01.parquet \
     --dataset ais:DailyBroadcasts \
     --vocab vocabularies/ --desc descriptions/ \
     --companion path/to/index/ais-2025-01-01.parquet \
@@ -64,18 +64,18 @@ sdl validate path/to/broadcasts/ais-2025-01-01.parquet \
     --verbose
 
 # Inspect a Parquet file's raw metadata
-sdl info path/to/data.parquet
+mnf info path/to/data.parquet
 ```
 
 ## Python API
 
 ```python
 from pathlib import Path
-from sdl import SDLGraph, ValidationEngine
+from manifest import ManifestGraph, ValidationEngine
 
 # Load the graph — vocabulary + one or more domain descriptions
-graph = SDLGraph()
-graph.load("vocabularies/sdl_core.ttl")
+graph = ManifestGraph()
+graph.load("vocabularies/mnf_core.ttl")
 graph.load("descriptions/ais_description.ttl")
 graph.load("descriptions/polymarket_description.ttl")
 
@@ -120,10 +120,10 @@ Use `--max-level schema` for instant type-mismatch detection.
 ## Structure
 
 ```
-sdl-toolkit/
-├── sdl/                      # Python package
+manifest-toolkit/
+├── manifest/                 # Python package
 │   ├── model.py              # Core data types (Attestation, ColumnInfo, etc.)
-│   ├── graph.py              # SDL graph loader and query layer (rdflib)
+│   ├── graph.py              # Manifest graph loader and query layer (rdflib)
 │   ├── engine.py             # Graph-driven validation orchestrator
 │   ├── registry.py           # Extensible validator registry
 │   ├── cli.py                # Click CLI
@@ -132,12 +132,12 @@ sdl-toolkit/
 │       ├── values.py         #   Value range checks (DuckDB scan)
 │       ├── ordering.py       #   Row ordering + monotonicity (DuckDB)
 │       └── aggregation.py    #   Index/summary consistency (DuckDB)
-├── vocabularies/             # Core SDL vocabulary (domain-independent)
-│   └── sdl_core.ttl
+├── vocabularies/             # Core Manifest vocabulary (domain-independent)
+│   └── mnf_core.ttl
 ├── descriptions/             # Domain-specific descriptions
 │   ├── ais_description.ttl           # NOAA AIS maritime data
 │   ├── polymarket_description.ttl    # Polymarket prediction-market data
-│   └── generated/                    # Markdown tables (regenerate with sdl generate-docs)
+│   └── generated/                    # Markdown tables (regenerate with mnf generate-docs)
 │       ├── ais_description.md
 │       └── polymarket_description.md
 ├── docs/
@@ -150,13 +150,13 @@ sdl-toolkit/
 
 This is a v0.1 prototype. It works end-to-end against real data, but there are important things to know:
 
-**The engine is graph-driven but not yet fully generic.** It reads the SDL graph to discover columns, semantic types, ordering keys, and aggregation relationships, and automatically dispatches built-in validators based on what it finds. However, the combinator-based constraint model in the Turtle (the `sdl:Grouped` / `sdl:Ordered` / `sdl:innerConstraint` chains) is not yet walked generically as an interpreter — the engine recognises specific patterns (ordering + monotonicity within groups) rather than interpreting arbitrary combinator trees. Making that fully generic is the natural next evolution.
+**The engine is graph-driven but not yet fully generic.** It reads the Manifest graph to discover columns, semantic types, ordering keys, and aggregation relationships, and automatically dispatches built-in validators based on what it finds. However, the combinator-based constraint model in the Turtle (the `mnf:Grouped` / `mnf:Ordered` / `mnf:innerConstraint` chains) is not yet walked generically as an interpreter — the engine recognises specific patterns (ordering + monotonicity within groups) rather than interpreting arbitrary combinator trees. Making that fully generic is the natural next evolution.
 
 **The validator registry exists but isn't wired into the engine yet.** `ValidatorRegistry` is there for when you need to register domain-specific validators by URI (e.g. a custom H3 derivation checker, or the `MaxConsecutiveImpliedSpeed` sequential aggregation). Currently the engine dispatches directly to built-in validators. The registry becomes the extension point when custom domain validators are needed.
 
 **Standard aggregations are verified automatically; custom ones are skipped.** The aggregation validator handles `MIN`, `MAX`, `MEAN`, `COUNT`, `COUNT DISTINCT`, and `DISTINCT LIST` by recomputing them from source data and comparing. Sequential/windowed aggregations like `MaxConsecutiveImpliedSpeed` and `HaversineFirstToLast` need domain-specific validators that would be registered via the registry.
 
-**Currently tied to Parquet on local filesystem.** The validators use `pyarrow` for schema inspection and `duckdb` for data queries, both reading local Parquet files. S3 support is straightforward (DuckDB and PyArrow both support S3 paths) but isn't parameterised yet. Extending to other formats (JSON, CSV, database tables) is a future direction — the SDL vocabulary itself is format-agnostic, only the validators are Parquet-specific.
+**Currently tied to Parquet on local filesystem.** The validators use `pyarrow` for schema inspection and `duckdb` for data queries, both reading local Parquet files. S3 support is straightforward (DuckDB and PyArrow both support S3 paths) but isn't parameterised yet. Extending to other formats (JSON, CSV, database tables) is a future direction — the Manifest vocabulary itself is format-agnostic, only the validators are Parquet-specific.
 
 **New vocabulary terms don't yet have validators.** The vocabulary extensions added for the Polymarket domain (`AllowedValues`, `entityKey`, `embeddedStructure`, `ForeignKey`, `schemaStability`, `SameEntity`, `CompositePartitionScheme`) are fully expressible in the graph but the validation engine doesn't yet check them. For example, the engine doesn't yet verify that a `TradeSide` column only contains values from its `AllowedValues` set, or that a `ForeignKey` relationship has matching values across datasets. The terms are immediately useful for documentation and for LLM/tool consumption; automated validation will follow.
 
@@ -166,14 +166,14 @@ This is a v0.1 prototype. It works end-to-end against real data, but there are i
 2. Describe your datasets: columns, physical types, semantic types
 3. Declare derivations, aggregation relationships, ordering, provenance
 4. Use the newer vocabulary terms where applicable: `entityKey` for snapshot data, `AllowedValues` for categoricals, `embeddedStructure` for JSON-in-string, `ForeignKey` for cross-dataset links, `SameEntity` for shared identifiers, `schemaStability` for inferred schemas, `CompositePartitionScheme` for multi-level partitioning
-5. Run `sdl validate` — all standard checks (schema, ranges, ordering) work automatically
+5. Run `mnf validate` — all standard checks (schema, ranges, ordering) work automatically
 6. For domain-specific constraints, implement validators and register them via `ValidatorRegistry`
 
 The core vocabulary was extended once — when modelling Polymarket prediction-market data surfaced 7 genuinely domain-independent gaps (enum constraints, entity keys, embedded structure, multi-level partitioning, foreign keys, schema stability, cross-dataset identity). All additions were backward-compatible. See [`docs/vocabulary-evolution.md`](docs/vocabulary-evolution.md) for the full story.
 
 ## Two Domain Examples
 
-SDL ships with two domain descriptions that together exercise the full vocabulary:
+Manifest ships with two domain descriptions that together exercise the full vocabulary:
 
 | | AIS Maritime Data | Polymarket Prediction Markets |
 |-|-------------------|-------------------------------|

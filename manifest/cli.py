@@ -1,12 +1,12 @@
 """
-SDL Toolkit CLI.
+Manifest Toolkit CLI.
 
 Usage:
-    sdl validate <file.parquet> --dataset ais:DailyBroadcasts --vocab vocab/ --desc desc/
-    sdl validate <broadcast.parquet> --dataset ais:DailyBroadcasts --companion <index.parquet> --companion-dataset ais:DailyIndex
-    sdl describe <vocab_dir> <desc_dir>
-    sdl generate-docs --vocab vocabularies/ --desc descriptions/ --out descriptions/generated/
-    sdl info <file.parquet>
+    mnf validate <file.parquet> --dataset ais:DailyBroadcasts --vocab vocab/ --desc desc/
+    mnf validate <broadcast.parquet> --dataset ais:DailyBroadcasts --companion <index.parquet> --companion-dataset ais:DailyIndex
+    mnf describe <vocab_dir> <desc_dir>
+    mnf generate-docs --vocab vocabularies/ --desc descriptions/ --out descriptions/generated/
+    mnf info <file.parquet>
 """
 
 from __future__ import annotations
@@ -16,17 +16,17 @@ from pathlib import Path
 import click
 from rdflib import Graph, Namespace, URIRef
 
-from sdl.engine import ValidationEngine
-from sdl.graph import SDLGraph, SDL, RDF, RDFS, _str, _label_or_str, _lit_str
-from sdl.model import ComputationalProfile, ValidationResult
+from manifest.engine import ValidationEngine
+from manifest.graph import ManifestGraph, MNF, RDF, RDFS, _str, _label_or_str, _lit_str
+from manifest.model import ComputationalProfile, ValidationResult
 
 
 def _load_graph(
     vocab_paths: tuple[str, ...],
     desc_paths: tuple[str, ...],
-) -> SDLGraph:
-    """Load vocabulary and description files into an SDLGraph."""
-    graph = SDLGraph()
+) -> ManifestGraph:
+    """Load vocabulary and description files into an ManifestGraph."""
+    graph = ManifestGraph()
     for p in vocab_paths:
         path = Path(p)
         if path.is_dir():
@@ -44,7 +44,7 @@ def _load_graph(
 
 @click.group()
 def main() -> None:
-    """SDL Toolkit — Structural Data Language for data lakes."""
+    """Manifest Toolkit — describe, validate, and integrate data with formal semantics."""
     pass
 
 
@@ -53,7 +53,7 @@ def main() -> None:
 @click.option(
     "--dataset", "-d",
     required=True,
-    help="SDL dataset URI (e.g. ais:DailyBroadcasts)",
+    help="Manifest dataset URI (e.g. ais:DailyBroadcasts)",
 )
 @click.option(
     "--vocab", "-v",
@@ -76,7 +76,7 @@ def main() -> None:
 @click.option(
     "--companion-dataset",
     default=None,
-    help="SDL dataset URI for the companion file",
+    help="MNF dataset URI for the companion file",
 )
 @click.option(
     "--max-level",
@@ -97,7 +97,7 @@ def validate(
     turtle: bool,
     verbose: bool,
 ) -> None:
-    """Validate a Parquet file against its SDL description."""
+    """Validate a Parquet file against its Manifest description."""
     level_map = {
         "schema": ComputationalProfile.SCHEMA_CHECK,
         "values": ComputationalProfile.PER_VALUE,
@@ -137,7 +137,7 @@ def validate(
 
     if turtle:
         click.echo("\n# --- Attestation Triples ---")
-        click.echo("@prefix sdl: <http://example.org/sdl#> .")
+        click.echo("@prefix mnf: <http://example.org/manifest#> .")
         click.echo("@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .")
         click.echo()
         for a in attestations:
@@ -162,7 +162,7 @@ def validate(
     help="Path to description .ttl file or directory",
 )
 def describe(vocab: tuple[str, ...], desc: tuple[str, ...]) -> None:
-    """Show a summary of datasets described in the SDL graph."""
+    """Show a summary of datasets described in the Manifest graph."""
     graph = _load_graph(vocab, desc)
 
     for ds_uri in graph.list_datasets():
@@ -284,7 +284,7 @@ def info(file_path: str) -> None:
     help="Output directory for generated markdown",
 )
 def generate_docs(vocab: tuple[str, ...], desc: tuple[str, ...], out: str) -> None:
-    """Generate markdown documentation from SDL descriptions."""
+    """Generate markdown documentation from Manifest descriptions."""
     graph = _load_graph(vocab, desc)
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -303,7 +303,7 @@ def generate_docs(vocab: tuple[str, ...], desc: tuple[str, ...], out: str) -> No
         tmp = Graph()
         tmp.parse(str(desc_file), format="turtle")
         ds_uris = [
-            _str(s) for s in tmp.subjects(RDF.type, SDL.Dataset)
+            _str(s) for s in tmp.subjects(RDF.type, MNF.Dataset)
         ]
         if not ds_uris:
             continue
@@ -315,7 +315,7 @@ def generate_docs(vocab: tuple[str, ...], desc: tuple[str, ...], out: str) -> No
 
 
 def _render_description(
-    graph: SDLGraph, ds_uris: list[str], source_filename: str,
+    graph: ManifestGraph, ds_uris: list[str], source_filename: str,
 ) -> str:
     """Render markdown for all datasets from one description file."""
     g = graph.g
@@ -337,8 +337,8 @@ def _render_description(
     for uri in ds_uris:
         ds = graph.get_dataset(uri)
         subj = graph._resolve_uri(uri)
-        row_sem = _label_or_str(g, g.value(subj, SDL.rowSemantics))
-        stability = _label_or_str(g, g.value(subj, SDL.schemaStability))
+        row_sem = _label_or_str(g, g.value(subj, MNF.rowSemantics))
+        stability = _label_or_str(g, g.value(subj, MNF.schemaStability))
         part = ds.partition_granularity or "—"
         lines.append(
             f"| {ds.label} | {row_sem or '—'} | {stability or '—'} "
@@ -368,7 +368,7 @@ def _render_description(
     return "\n".join(lines) + "\n"
 
 
-def _render_dataset_section(graph: SDLGraph, uri: str) -> list[str]:
+def _render_dataset_section(graph: ManifestGraph, uri: str) -> list[str]:
     """Render one dataset's full documentation section."""
     g = graph.g
     ds = graph.get_dataset(uri)
@@ -385,18 +385,18 @@ def _render_dataset_section(graph: SDLGraph, uri: str) -> list[str]:
     if comment:
         lines.append(f"  \n{' '.join(comment.split())}")
 
-    row_sem = _label_or_str(g, g.value(subj, SDL.rowSemantics))
+    row_sem = _label_or_str(g, g.value(subj, MNF.rowSemantics))
     if row_sem:
         lines.append(f"  \n**Row semantics:** {row_sem}")
-    stability = _label_or_str(g, g.value(subj, SDL.schemaStability))
+    stability = _label_or_str(g, g.value(subj, MNF.schemaStability))
     if stability:
         lines.append(f"  \n**Schema:** {stability}")
     if ds.partition_path_template:
         lines.append(f"  \n**Path template:** `{ds.partition_path_template}`")
 
-    entity_key = g.value(subj, SDL.entityKey)
+    entity_key = g.value(subj, MNF.entityKey)
     if entity_key:
-        ek_name = _lit_str(g.value(entity_key, SDL.columnName))
+        ek_name = _lit_str(g.value(entity_key, MNF.columnName))
         lines.append(f"  \n**Entity key:** `{ek_name}`")
 
     lines.append("")
@@ -453,7 +453,7 @@ def _render_dataset_section(graph: SDLGraph, uri: str) -> list[str]:
     return lines
 
 
-def _render_semantic_types(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
+def _render_semantic_types(graph: ManifestGraph, ds_uris: list[str]) -> list[str]:
     """Render a reference table of all semantic types used across datasets."""
     g = graph.g
     # Collect unique semantic type URIs
@@ -502,7 +502,7 @@ def _render_semantic_types(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     return lines
 
 
-def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
+def _render_cross_dataset(graph: ManifestGraph, ds_uris: list[str]) -> list[str]:
     """Render cross-dataset relationships: aggregations, foreign keys, same-entity."""
     g = graph.g
     lines: list[str] = []
@@ -529,9 +529,9 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     # Foreign keys
     fk_lines: list[str] = []
     ds_uris_resolved = {graph._resolve_uri(u) for u in ds_uris}
-    for fk_node in g.subjects(RDF.type, SDL.ForeignKey):
-        from_col = g.value(fk_node, SDL.foreignKeyFrom)
-        to_col = g.value(fk_node, SDL.foreignKeyTo)
+    for fk_node in g.subjects(RDF.type, MNF.ForeignKey):
+        from_col = g.value(fk_node, MNF.foreignKeyFrom)
+        to_col = g.value(fk_node, MNF.foreignKeyTo)
         if from_col is None or to_col is None:
             continue
         # Check if either column belongs to a dataset in our set
@@ -540,11 +540,11 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
         if from_ds is None and to_ds is None:
             continue
         label = _lit_str(g.value(fk_node, RDFS.label)) or _str(fk_node)
-        from_name = _lit_str(g.value(from_col, SDL.columnName))
-        to_name = _lit_str(g.value(to_col, SDL.columnName))
+        from_name = _lit_str(g.value(from_col, MNF.columnName))
+        to_name = _lit_str(g.value(to_col, MNF.columnName))
         from_ds_label = _lit_str(g.value(from_ds, RDFS.label)) if from_ds else "?"
         to_ds_label = _lit_str(g.value(to_ds, RDFS.label)) if to_ds else "?"
-        integrity = _label_or_str(g, g.value(fk_node, SDL.referentialIntegrity))
+        integrity = _label_or_str(g, g.value(fk_node, MNF.referentialIntegrity))
         fk_lines.append(
             f"| {label} | {from_ds_label}.`{from_name}` "
             f"| {to_ds_label}.`{to_name}` | {integrity} |"
@@ -560,8 +560,8 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
 
     # Same entity (long format: one row per column)
     se_lines: list[str] = []
-    for se_node in g.subjects(RDF.type, SDL.SameEntity):
-        cols = list(g.objects(se_node, SDL.identifyingColumn))
+    for se_node in g.subjects(RDF.type, MNF.SameEntity):
+        cols = list(g.objects(se_node, MNF.identifyingColumn))
         relevant = any(
             _find_dataset_for_column(g, col, ds_uris_resolved) is not None
             for col in cols
@@ -570,7 +570,7 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
             continue
         label = _lit_str(g.value(se_node, RDFS.label)) or _str(se_node)
         for col in cols:
-            col_name = _lit_str(g.value(col, SDL.columnName))
+            col_name = _lit_str(g.value(col, MNF.columnName))
             col_ds = _find_dataset_for_column(g, col, ds_uris_resolved)
             ds_label = _lit_str(g.value(col_ds, RDFS.label)) if col_ds else "?"
             se_lines.append(f"| {label} | {ds_label} | `{col_name}` |")
@@ -586,7 +586,7 @@ def _render_cross_dataset(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     return lines
 
 
-def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
+def _render_agent_notes(graph: ManifestGraph, ds_uris: list[str]) -> list[str]:
     """Render contextual notes for AI agents, adaptive to concepts present."""
     g = graph.g
     lines: list[str] = []
@@ -599,13 +599,13 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     has_ordering = False
     for uri in ds_uris:
         subj = graph._resolve_uri(uri)
-        rs = _str(g.value(subj, SDL.rowSemantics))
+        rs = _str(g.value(subj, MNF.rowSemantics))
         if rs:
             row_sems.add(rs)
-        st = _str(g.value(subj, SDL.schemaStability))
+        st = _str(g.value(subj, MNF.schemaStability))
         if st:
             stabilities.add(st)
-        if g.value(subj, SDL.entityKey):
+        if g.value(subj, MNF.entityKey):
             has_entity_keys = True
         ds = graph.get_dataset(uri)
         if ds.ordering_keys:
@@ -615,17 +615,17 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
 
     ds_uris_resolved = {graph._resolve_uri(u) for u in ds_uris}
     has_fks = any(
-        _find_dataset_for_column(g, g.value(fk, SDL.foreignKeyFrom), ds_uris_resolved) is not None
-        or _find_dataset_for_column(g, g.value(fk, SDL.foreignKeyTo), ds_uris_resolved) is not None
-        for fk in g.subjects(RDF.type, SDL.ForeignKey)
-        if g.value(fk, SDL.foreignKeyFrom) is not None
+        _find_dataset_for_column(g, g.value(fk, MNF.foreignKeyFrom), ds_uris_resolved) is not None
+        or _find_dataset_for_column(g, g.value(fk, MNF.foreignKeyTo), ds_uris_resolved) is not None
+        for fk in g.subjects(RDF.type, MNF.ForeignKey)
+        if g.value(fk, MNF.foreignKeyFrom) is not None
     )
     has_same_entity = any(
         any(
             _find_dataset_for_column(g, col, ds_uris_resolved) is not None
-            for col in g.objects(se, SDL.identifyingColumn)
+            for col in g.objects(se, MNF.identifyingColumn)
         )
-        for se in g.subjects(RDF.type, SDL.SameEntity)
+        for se in g.subjects(RDF.type, MNF.SameEntity)
     )
     has_aggregations = any(
         graph.get_aggregations(uri) for uri in ds_uris
@@ -636,7 +636,7 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     lines.append("## Notes for AI Agents")
     lines.append("")
     lines.append(
-        "This section explains SDL concepts used in the tables above, "
+        "This section explains Manifest concepts used in the tables above, "
         "to help you write correct queries against this data."
     )
     lines.append("")
@@ -645,21 +645,21 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     if row_sems:
         lines.append("**Row semantics** determine how to interpret rows:")
         lines.append("")
-        if "sdl:EventRow" in row_sems:
+        if "mnf:EventRow" in row_sems:
             lines.append(
-                "- **Event rows** (`sdl:EventRow`) — each row is an independent "
+                "- **Event rows** (`mnf:EventRow`) — each row is an independent "
                 "event or observation. No deduplication needed."
             )
-        if "sdl:SnapshotRow" in row_sems:
+        if "mnf:SnapshotRow" in row_sems:
             lines.append(
-                "- **Snapshot rows** (`sdl:SnapshotRow`) — each row is a "
+                "- **Snapshot rows** (`mnf:SnapshotRow`) — each row is a "
                 "point-in-time observation of a recurring entity. The same entity "
                 "appears multiple times. To get the latest state, deduplicate by "
                 "entity key ordered by `_fetched_at` descending."
             )
-        if "sdl:AggregateRow" in row_sems:
+        if "mnf:AggregateRow" in row_sems:
             lines.append(
-                "- **Aggregate rows** (`sdl:AggregateRow`) — each row summarises "
+                "- **Aggregate rows** (`mnf:AggregateRow`) — each row summarises "
                 "a group of source rows. Check the Aggregation table for how "
                 "columns relate to the source dataset."
             )
@@ -680,21 +680,21 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
     if stabilities:
         lines.append("**Schema stability** affects query robustness:")
         lines.append("")
-        if "sdl:FixedSchema" in stabilities:
+        if "mnf:FixedSchema" in stabilities:
             lines.append(
-                "- **Fixed** (`sdl:FixedSchema`) — all files have identical "
+                "- **Fixed** (`mnf:FixedSchema`) — all files have identical "
                 "columns and types. Query without defensive casting."
             )
-        if "sdl:InferredSchema" in stabilities:
+        if "mnf:InferredSchema" in stabilities:
             lines.append(
-                "- **Inferred** (`sdl:InferredSchema`) — schema is inferred from "
+                "- **Inferred** (`mnf:InferredSchema`) — schema is inferred from "
                 "data and may vary between files. Use `TRY_CAST` for type safety, "
                 "handle potentially missing columns, and use `UNION BY NAME` when "
                 "combining files from different time periods."
             )
-        if "sdl:VariableSchema" in stabilities:
+        if "mnf:VariableSchema" in stabilities:
             lines.append(
-                "- **Variable** (`sdl:VariableSchema`) — schema changes over "
+                "- **Variable** (`mnf:VariableSchema`) — schema changes over "
                 "time as the upstream source evolves. Query defensively."
             )
         lines.append("")
@@ -715,7 +715,7 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
         lines.append(
             "**Foreign keys** — the From and To columns are joinable across "
             "datasets, even when column names differ. Check the Integrity column: "
-            "`sdl:PartialIntegrity` means some values may not resolve in the "
+            "`mnf:PartialIntegrity` means some values may not resolve in the "
             "target (use LEFT JOIN rather than INNER JOIN if you need all rows)."
         )
         lines.append("")
@@ -748,10 +748,10 @@ def _render_agent_notes(graph: SDLGraph, ds_uris: list[str]) -> list[str]:
 
     # Notation
     lines.append(
-        "**Notation** — `sdl:` prefixed terms are SDL vocabulary concepts. "
+        "**Notation** — `mnf:` prefixed terms are Manifest vocabulary concepts. "
         "Domain-specific prefixes (e.g. `ais:`, `pm:`) identify semantic types "
-        "and domain entities. Physical types like `sdl:Varchar`, `sdl:Double`, "
-        "`sdl:Integer` map directly to DuckDB/Parquet types."
+        "and domain entities. Physical types like `mnf:Varchar`, `mnf:Double`, "
+        "`mnf:Integer` map directly to DuckDB/Parquet types."
     )
     lines.append("")
 
@@ -762,7 +762,7 @@ def _find_dataset_for_column(
     g: Graph, col_node: URIRef, ds_set: set[URIRef],
 ) -> URIRef | None:
     """Find which dataset a column belongs to, if any in ds_set."""
-    for ds in g.subjects(SDL.hasColumn, col_node):
+    for ds in g.subjects(MNF.hasColumn, col_node):
         if ds in ds_set:
             return ds
     return None

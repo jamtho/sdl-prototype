@@ -1,4 +1,4 @@
-"""SDL graph loader — reads Turtle files and extracts structured metadata."""
+"""Manifest graph loader — reads Turtle files and extracts structured metadata."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Iterator
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.term import Node
 
-from sdl.model import (
+from manifest.model import (
     AggregatedColumnInfo,
     AggregationInfo,
     ColumnInfo,
@@ -19,7 +19,7 @@ from sdl.model import (
 )
 
 # Namespace declarations matching the Turtle files
-SDL = Namespace("http://example.org/sdl#")
+MNF = Namespace("http://example.org/manifest#")
 AIS = Namespace("http://example.org/ais#")
 PM = Namespace("http://example.org/polymarket#")
 RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -32,7 +32,7 @@ def _str(node: Node | None) -> str:
     if node is None:
         return ""
     s = str(node)
-    for prefix, ns in [("sdl:", str(SDL)), ("ais:", str(AIS)),
+    for prefix, ns in [("mnf:", str(MNF)), ("ais:", str(AIS)),
                         ("pm:", str(PM)),
                         ("rdfs:", str(RDFS)), ("xsd:", str(XSD))]:
         if s.startswith(ns):
@@ -80,16 +80,16 @@ def _lit_bool(node: Node | None) -> bool:
     return True
 
 
-class SDLGraph:
+class ManifestGraph:
     """
-    Loads SDL vocabulary and domain description files, provides
+    Loads Manifest vocabulary and domain description files, provides
     structured query methods for extracting dataset metadata,
     constraints, derivations, and aggregation relationships.
     """
 
     def __init__(self) -> None:
         self.g = Graph()
-        self.g.bind("sdl", SDL)
+        self.g.bind("mnf", MNF)
         self.g.bind("ais", AIS)
         self.g.bind("pm", PM)
         self.g.bind("rdfs", RDFS)
@@ -112,7 +112,7 @@ class SDLGraph:
     def list_datasets(self) -> list[str]:
         """Return URIs of all declared datasets."""
         return [
-            _str(s) for s in self.g.subjects(RDF.type, SDL.Dataset)
+            _str(s) for s in self.g.subjects(RDF.type, MNF.Dataset)
         ]
 
     def get_dataset(self, dataset_uri: str) -> DatasetInfo:
@@ -137,11 +137,11 @@ class SDLGraph:
 
     def _get_columns(self, dataset: URIRef) -> Iterator[ColumnInfo]:
         """Yield ColumnInfo for each column of a dataset."""
-        for col_node in self.g.objects(dataset, SDL.hasColumn):
-            name = _lit_str(self.g.value(col_node, SDL.columnName))
-            phys = _str(self.g.value(col_node, SDL.physicalType))
-            sem = _str(self.g.value(col_node, SDL.semanticType)) or None
-            nullable = _lit_bool(self.g.value(col_node, SDL.nullable))
+        for col_node in self.g.objects(dataset, MNF.hasColumn):
+            name = _lit_str(self.g.value(col_node, MNF.columnName))
+            phys = _str(self.g.value(col_node, MNF.physicalType))
+            sem = _str(self.g.value(col_node, MNF.semanticType)) or None
+            nullable = _lit_bool(self.g.value(col_node, MNF.nullable))
             yield ColumnInfo(
                 uri=_str(col_node),
                 name=name,
@@ -152,19 +152,19 @@ class SDLGraph:
 
     def _get_ordering(self, dataset: URIRef) -> Iterator[OrderingKeyInfo]:
         """Yield ordering keys for a dataset's physical layout."""
-        layout = self.g.value(dataset, SDL.hasPhysicalLayout)
+        layout = self.g.value(dataset, MNF.hasPhysicalLayout)
         if layout is None:
             return
-        ordering = self.g.value(layout, SDL.hasRowOrdering)
+        ordering = self.g.value(layout, MNF.hasRowOrdering)
         if ordering is None:
             return
-        for key_node in self.g.objects(ordering, SDL.hasOrderingKey):
-            col_ref = self.g.value(key_node, SDL.keyColumn)
-            col_name = _lit_str(self.g.value(col_ref, SDL.columnName)) if col_ref else ""
-            direction = _label_or_str(self.g, self.g.value(key_node, SDL.keyDirection))
-            precedence_lit = self.g.value(key_node, SDL.keyPrecedence)
+        for key_node in self.g.objects(ordering, MNF.hasOrderingKey):
+            col_ref = self.g.value(key_node, MNF.keyColumn)
+            col_name = _lit_str(self.g.value(col_ref, MNF.columnName)) if col_ref else ""
+            direction = _label_or_str(self.g, self.g.value(key_node, MNF.keyDirection))
+            precedence_lit = self.g.value(key_node, MNF.keyPrecedence)
             precedence = int(precedence_lit) if precedence_lit else 99
-            semantic = _str(self.g.value(key_node, SDL.orderingSemantic))
+            semantic = _str(self.g.value(key_node, MNF.orderingSemantic))
             yield OrderingKeyInfo(
                 column_name=col_name,
                 direction=direction,
@@ -174,21 +174,21 @@ class SDLGraph:
 
     def _get_layout(self, dataset: URIRef) -> tuple[str, str | None, str | None, str | None]:
         """Extract physical layout info: format, path template, granularity, redundant key."""
-        layout = self.g.value(dataset, SDL.hasPhysicalLayout)
-        file_format = _label_or_str(self.g, self.g.value(layout, SDL.fileFormat)) if layout else "Parquet"
+        layout = self.g.value(dataset, MNF.hasPhysicalLayout)
+        file_format = _label_or_str(self.g, self.g.value(layout, MNF.fileFormat)) if layout else "Parquet"
 
-        partition = self.g.value(dataset, SDL.partitionedBy)
-        path_template = _lit_str(self.g.value(partition, SDL.pathTemplate)) if partition else None
-        granularity = _label_or_str(self.g, self.g.value(partition, SDL.partitionGranularity)) if partition else None
+        partition = self.g.value(dataset, MNF.partitionedBy)
+        path_template = _lit_str(self.g.value(partition, MNF.pathTemplate)) if partition else None
+        granularity = _label_or_str(self.g, self.g.value(partition, MNF.partitionGranularity)) if partition else None
 
         # Handle CompositePartitionScheme
-        if not granularity and partition and (partition, RDF.type, SDL.CompositePartitionScheme) in self.g:
+        if not granularity and partition and (partition, RDF.type, MNF.CompositePartitionScheme) in self.g:
             levels: list[tuple[int, str, str]] = []
-            for level in self.g.objects(partition, SDL.hasPartitionLevel):
-                prec_lit = self.g.value(level, SDL.levelPrecedence)
+            for level in self.g.objects(partition, MNF.hasPartitionLevel):
+                prec_lit = self.g.value(level, MNF.levelPrecedence)
                 prec = int(prec_lit) if prec_lit else 99
-                col = _lit_str(self.g.value(level, SDL.levelColumn))
-                gran = _label_or_str(self.g, self.g.value(level, SDL.levelGranularity))
+                col = _lit_str(self.g.value(level, MNF.levelColumn))
+                gran = _label_or_str(self.g, self.g.value(level, MNF.levelGranularity))
                 levels.append((prec, gran.lower() if gran else col, col))
             if levels:
                 levels.sort()
@@ -198,9 +198,9 @@ class SDLGraph:
 
         redundant_key: str | None = None
         if partition:
-            rk_node = self.g.value(partition, SDL.redundantPartitionKey)
+            rk_node = self.g.value(partition, MNF.redundantPartitionKey)
             if rk_node:
-                redundant_key = _lit_str(self.g.value(rk_node, SDL.columnName))
+                redundant_key = _lit_str(self.g.value(rk_node, MNF.columnName))
 
         return file_format, path_template, granularity, redundant_key
 
@@ -211,27 +211,27 @@ class SDLGraph:
     def get_semantic_type(self, type_uri: str) -> SemanticTypeInfo | None:
         """Resolve metadata for a semantic type."""
         subj = self._resolve_uri(type_uri)
-        if (subj, RDF.type, SDL.SemanticType) not in self.g:
+        if (subj, RDF.type, MNF.SemanticType) not in self.g:
             # Check if it's declared as a semantic type at all
             # (it might just be referenced without explicit rdf:type)
-            if self.g.value(subj, SDL.requiredPhysicalType) is None:
+            if self.g.value(subj, MNF.requiredPhysicalType) is None:
                 return None
 
         label = _lit_str(self.g.value(subj, RDFS.label)) or type_uri
-        req_phys = _str(self.g.value(subj, SDL.requiredPhysicalType)) or None
+        req_phys = _str(self.g.value(subj, MNF.requiredPhysicalType)) or None
 
         acceptable: list[str] = [
-            _str(o) for o in self.g.objects(subj, SDL.acceptablePhysicalType)
+            _str(o) for o in self.g.objects(subj, MNF.acceptablePhysicalType)
         ]
 
         # Value range
-        vr = self.g.value(subj, SDL.valueRange)
-        min_inc = _lit_float(self.g.value(vr, SDL.minInclusive)) if vr else None
-        max_inc = _lit_float(self.g.value(vr, SDL.maxInclusive)) if vr else None
-        min_exc = _lit_float(self.g.value(vr, SDL.minExclusive)) if vr else None
-        max_exc = _lit_float(self.g.value(vr, SDL.maxExclusive)) if vr else None
+        vr = self.g.value(subj, MNF.valueRange)
+        min_inc = _lit_float(self.g.value(vr, MNF.minInclusive)) if vr else None
+        max_inc = _lit_float(self.g.value(vr, MNF.maxInclusive)) if vr else None
+        min_exc = _lit_float(self.g.value(vr, MNF.minExclusive)) if vr else None
+        max_exc = _lit_float(self.g.value(vr, MNF.maxExclusive)) if vr else None
 
-        unit = _lit_str(self.g.value(subj, SDL.unit)) or None
+        unit = _lit_str(self.g.value(subj, MNF.unit)) or None
 
         return SemanticTypeInfo(
             uri=type_uri,
@@ -252,21 +252,21 @@ class SDLGraph:
     def get_derivations(self, dataset_uri: str) -> list[DerivationInfo]:
         """Find all derivations whose derived column belongs to this dataset."""
         dataset = self._resolve_uri(dataset_uri)
-        dataset_columns = set(self.g.objects(dataset, SDL.hasColumn))
+        dataset_columns = set(self.g.objects(dataset, MNF.hasColumn))
 
         derivations: list[DerivationInfo] = []
-        for subj in self.g.subjects(RDF.type, SDL.Derivation):
-            derived_col = self.g.value(subj, SDL.derivedColumn)
+        for subj in self.g.subjects(RDF.type, MNF.Derivation):
+            derived_col = self.g.value(subj, MNF.derivedColumn)
             if derived_col not in dataset_columns:
                 continue
 
-            derived_name = _lit_str(self.g.value(derived_col, SDL.columnName))
+            derived_name = _lit_str(self.g.value(derived_col, MNF.columnName))
             source_cols = [
-                _lit_str(self.g.value(sc, SDL.columnName))
-                for sc in self.g.objects(subj, SDL.sourceColumn)
+                _lit_str(self.g.value(sc, MNF.columnName))
+                for sc in self.g.objects(subj, MNF.sourceColumn)
             ]
-            func_uri = _str(self.g.value(subj, SDL.derivationFunction))
-            props = [_str(p) for p in self.g.objects(subj, SDL.hasDerivationProperty)]
+            func_uri = _str(self.g.value(subj, MNF.derivationFunction))
+            props = [_str(p) for p in self.g.objects(subj, MNF.hasDerivationProperty)]
 
             derivations.append(DerivationInfo(
                 uri=_str(subj),
@@ -287,28 +287,28 @@ class SDLGraph:
         target = self._resolve_uri(target_dataset_uri)
         results: list[AggregationInfo] = []
 
-        for subj in self.g.subjects(RDF.type, SDL.AggregationRelationship):
-            if self.g.value(subj, SDL.targetDataset) != target:
+        for subj in self.g.subjects(RDF.type, MNF.AggregationRelationship):
+            if self.g.value(subj, MNF.targetDataset) != target:
                 continue
 
-            source_ds = _str(self.g.value(subj, SDL.sourceDataset))
-            group_col_node = self.g.value(subj, SDL.groupByColumn)
-            group_col = _lit_str(self.g.value(group_col_node, SDL.columnName)) if group_col_node else ""
+            source_ds = _str(self.g.value(subj, MNF.sourceDataset))
+            group_col_node = self.g.value(subj, MNF.groupByColumn)
+            group_col = _lit_str(self.g.value(group_col_node, MNF.columnName)) if group_col_node else ""
 
             agg_cols: list[AggregatedColumnInfo] = []
-            for ac_node in self.g.objects(subj, SDL.hasAggregatedColumn):
-                tc_node = self.g.value(ac_node, SDL.targetColumn)
-                tc_name = _lit_str(self.g.value(tc_node, SDL.columnName)) if tc_node else ""
+            for ac_node in self.g.objects(subj, MNF.hasAggregatedColumn):
+                tc_node = self.g.value(ac_node, MNF.targetColumn)
+                tc_name = _lit_str(self.g.value(tc_node, MNF.columnName)) if tc_node else ""
 
                 src_names = [
-                    _lit_str(self.g.value(sc, SDL.columnName))
-                    for sc in self.g.objects(ac_node, SDL.aggregationSourceColumn)
+                    _lit_str(self.g.value(sc, MNF.columnName))
+                    for sc in self.g.objects(ac_node, MNF.aggregationSourceColumn)
                 ]
 
-                func = _str(self.g.value(ac_node, SDL.aggregationFunction))
+                func = _str(self.g.value(ac_node, MNF.aggregationFunction))
 
-                order_node = self.g.value(ac_node, SDL.withinGroupOrdering)
-                order_col = _lit_str(self.g.value(order_node, SDL.columnName)) if order_node else None
+                order_node = self.g.value(ac_node, MNF.withinGroupOrdering)
+                order_col = _lit_str(self.g.value(order_node, MNF.columnName)) if order_node else None
 
                 agg_cols.append(AggregatedColumnInfo(
                     target_column=tc_name,
@@ -335,11 +335,11 @@ class SDLGraph:
         """Return known deficiencies for a dataset."""
         dataset = self._resolve_uri(dataset_uri)
         deficiencies: list[dict[str, str]] = []
-        for d_node in self.g.objects(dataset, SDL.hasKnownDeficiency):
+        for d_node in self.g.objects(dataset, MNF.hasKnownDeficiency):
             deficiencies.append({
-                "description": _lit_str(self.g.value(d_node, SDL.deficiencyDescription)),
-                "impact": _lit_str(self.g.value(d_node, SDL.impact)),
-                "severity": _label_or_str(self.g, self.g.value(d_node, SDL.severity)),
+                "description": _lit_str(self.g.value(d_node, MNF.deficiencyDescription)),
+                "impact": _lit_str(self.g.value(d_node, MNF.impact)),
+                "severity": _label_or_str(self.g, self.g.value(d_node, MNF.severity)),
             })
         return deficiencies
 
@@ -351,9 +351,9 @@ class SDLGraph:
         """Return URIs of companion datasets."""
         subj = self._resolve_uri(dataset_uri)
         companions: list[str] = []
-        for obj in self.g.objects(subj, SDL.companionOf):
+        for obj in self.g.objects(subj, MNF.companionOf):
             companions.append(_str(obj))
-        for s in self.g.subjects(SDL.companionOf, subj):
+        for s in self.g.subjects(MNF.companionOf, subj):
             companions.append(_str(s))
         return companions
 
@@ -367,7 +367,7 @@ class SDLGraph:
             return URIRef(compact_uri)
         prefix, _, local = compact_uri.partition(":")
         ns_map: dict[str, Namespace] = {
-            "sdl": SDL,
+            "mnf": MNF,
             "ais": AIS,
             "pm": PM,
             "rdfs": RDFS,

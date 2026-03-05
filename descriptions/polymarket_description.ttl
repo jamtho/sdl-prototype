@@ -1,4 +1,4 @@
-@prefix sdl:    <http://example.org/sdl#> .
+@prefix mnf:    <http://example.org/manifest#> .
 @prefix pm:     <http://example.org/polymarket#> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
@@ -12,30 +12,30 @@
 # hourly Hive-partitioned snapshots of prediction-market data from Polymarket's
 # Gamma API, CLOB API, and Data API.
 #
-# This description exercises SDL against a fundamentally different domain than
+# This description exercises Manifest against a fundamentally different domain than
 # AIS maritime data, surfacing vocabulary gaps documented inline.
 # =============================================================================
 
 
 # =============================================================================
-# PART 0: SDL Vocabulary Gaps — Identified and Resolved
+# PART 0: Manifest Vocabulary Gaps — Identified and Resolved
 # =============================================================================
 #
-# Modelling this dataset surfaced 10 vocabulary gaps in the original SDL core.
-# Each has been addressed by extensions to sdl_core.ttl (sections 11–17).
+# Modelling this dataset surfaced 10 vocabulary gaps in the original Manifest core.
+# Each has been addressed by extensions to mnf_core.ttl (sections 11–17).
 # The descriptions below use the new vocabulary terms.
 #
-# Gap 1 — Snapshot semantics → sdl:entityKey
-# Gap 2 — Enum/categorical constraints → sdl:AllowedValues, sdl:allowedValue
-# Gap 3 — Structured-data-in-string → sdl:embeddedStructure, sdl:EmbeddedStructure
-# Gap 4 — Multi-level partitioning → sdl:CompositePartitionScheme, sdl:PartitionLevel
-# Gap 5 — Foreign key / referential → sdl:ForeignKey, sdl:foreignKeyFrom/To
-# Gap 6 — Variable-type columns → documented via sdl:KnownDeficiency (no new
-#          vocabulary needed; sdl:acceptablePhysicalType partially covers this)
-# Gap 7 — Non-semantic ordering → omit sdl:hasRowOrdering (already supported)
-# Gap 8 — Nested/repeated fields → sdl:embeddedStructure with embeddedElementType
-# Gap 9 — Schema stability → sdl:schemaStability, sdl:InferredSchema
-# Gap 10 — Cross-dataset entity identity → sdl:SameEntity, sdl:identifyingColumn
+# Gap 1 — Snapshot semantics → mnf:entityKey
+# Gap 2 — Enum/categorical constraints → mnf:AllowedValues, mnf:allowedValue
+# Gap 3 — Structured-data-in-string → mnf:embeddedStructure, mnf:EmbeddedStructure
+# Gap 4 — Multi-level partitioning → mnf:CompositePartitionScheme, mnf:PartitionLevel
+# Gap 5 — Foreign key / referential → mnf:ForeignKey, mnf:foreignKeyFrom/To
+# Gap 6 — Variable-type columns → documented via mnf:KnownDeficiency (no new
+#          vocabulary needed; mnf:acceptablePhysicalType partially covers this)
+# Gap 7 — Non-semantic ordering → omit mnf:hasRowOrdering (already supported)
+# Gap 8 — Nested/repeated fields → mnf:embeddedStructure with embeddedElementType
+# Gap 9 — Schema stability → mnf:schemaStability, mnf:InferredSchema
+# Gap 10 — Cross-dataset entity identity → mnf:SameEntity, mnf:identifyingColumn
 # =============================================================================
 
 
@@ -45,179 +45,179 @@
 
 # --- Identifiers ---
 
-pm:MarketId a sdl:SemanticType ;
+pm:MarketId a mnf:SemanticType ;
     rdfs:label "Polymarket Market ID" ;
     rdfs:comment """Unique identifier for a prediction market on Polymarket's
         Gamma API. Varchar string, typically a short alphanumeric slug.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-pm:EventId a sdl:SemanticType ;
+pm:EventId a mnf:SemanticType ;
     rdfs:label "Polymarket Event ID" ;
     rdfs:comment """Unique identifier for an event (a grouping of related
         markets) on Polymarket's Gamma API.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-pm:CLOBTokenId a sdl:SemanticType ;
+pm:CLOBTokenId a mnf:SemanticType ;
     rdfs:label "CLOB Token ID" ;
     rdfs:comment """Identifier for a tradable token on Polymarket's CLOB
         (Central Limit Order Book). Each market outcome has a distinct
         token ID. Long numeric string.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-pm:ConditionId a sdl:SemanticType ;
+pm:ConditionId a mnf:SemanticType ;
     rdfs:label "On-Chain Condition ID" ;
     rdfs:comment """Hex-encoded blockchain condition identifier linking a
         Polymarket market to its on-chain resolution contract. Serves as
         the primary cross-system join key between gamma/markets, trades,
         and holders.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-pm:ProxyWallet a sdl:SemanticType ;
+pm:ProxyWallet a mnf:SemanticType ;
     rdfs:label "Proxy Wallet Address" ;
     rdfs:comment "Ethereum proxy wallet address for a Polymarket trader." ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-pm:TransactionHash a sdl:SemanticType ;
+pm:TransactionHash a mnf:SemanticType ;
     rdfs:label "Transaction Hash" ;
     rdfs:comment "On-chain transaction hash for a trade settlement." ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
-pm:Slug a sdl:SemanticType ;
+pm:Slug a mnf:SemanticType ;
     rdfs:label "URL Slug" ;
     rdfs:comment "URL-safe slug used in Polymarket URLs." ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
 # --- Prices and probabilities ---
 
-pm:Probability a sdl:SemanticType ;
+pm:Probability a mnf:SemanticType ;
     rdfs:label "Probability" ;
     rdfs:comment """Price interpreted as a probability. On Polymarket,
         prices of outcome tokens range from 0.0 to 1.0, representing the
         market-implied probability of that outcome.""" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:valueRange [
-        sdl:minInclusive 0.0 ;
-        sdl:maxInclusive 1.0
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:valueRange [
+        mnf:minInclusive 0.0 ;
+        mnf:maxInclusive 1.0
     ] .
 
-pm:USDAmount a sdl:SemanticType ;
+pm:USDAmount a mnf:SemanticType ;
     rdfs:label "USD Amount" ;
     rdfs:comment "Dollar amount. Volume, liquidity, etc." ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:unit "USD" ;
-    sdl:valueRange [ sdl:minInclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "USD" ;
+    mnf:valueRange [ mnf:minInclusive 0.0 ] .
 
-pm:PriceSpread a sdl:SemanticType ;
+pm:PriceSpread a mnf:SemanticType ;
     rdfs:label "Bid-Ask Spread" ;
     rdfs:comment "Difference between best ask and best bid prices." ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:valueRange [ sdl:minInclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:valueRange [ mnf:minInclusive 0.0 ] .
 
-pm:PriceChange a sdl:SemanticType ;
+pm:PriceChange a mnf:SemanticType ;
     rdfs:label "Price Change" ;
     rdfs:comment "Absolute change in price over a time window. Can be negative." ;
-    sdl:requiredPhysicalType sdl:Double .
+    mnf:requiredPhysicalType mnf:Double .
 
 # --- Quantities ---
 
-pm:TradeSize a sdl:SemanticType ;
+pm:TradeSize a mnf:SemanticType ;
     rdfs:label "Trade Size" ;
     rdfs:comment """Number of shares in a trade. Stored as Float64 because
         the compactor infers from JSON (which has no integer type).""" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:valueRange [ sdl:minExclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:valueRange [ mnf:minExclusive 0.0 ] .
 
-pm:ShareAmount a sdl:SemanticType ;
+pm:ShareAmount a mnf:SemanticType ;
     rdfs:label "Share Amount Held" ;
     rdfs:comment "Number of shares held by a position holder." ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:valueRange [ sdl:minExclusive 0.0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:valueRange [ mnf:minExclusive 0.0 ] .
 
 # --- Temporal ---
 
-pm:FetchTimestamp a sdl:SemanticType ;
+pm:FetchTimestamp a mnf:SemanticType ;
     rdfs:label "Fetch Timestamp" ;
     rdfs:comment """Unix epoch float (seconds since 1970-01-01T00:00:00Z)
         injected by the fetcher at collection time. NOT from the API.
         Stored as Float64, not TimestampTZ, because the fetcher writes
         time.time() directly.""" ;
-    sdl:requiredPhysicalType sdl:Double .
+    mnf:requiredPhysicalType mnf:Double .
 
-pm:ISOTimestamp a sdl:SemanticType ;
+pm:ISOTimestamp a mnf:SemanticType ;
     rdfs:label "ISO 8601 Timestamp String" ;
     rdfs:comment """ISO 8601 formatted timestamp as a string. Used by the
         Gamma API for dates (startDate, endDate, createdAt, etc.).""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
 # --- Categorical ---
-# [SDL-GAP-2]: These types have constrained string values but SDL can only
-# express numeric ranges via sdl:valueRange.
+# [MNF-GAP-2]: These types have constrained string values but Manifest can only
+# express numeric ranges via mnf:valueRange.
 
-pm:TradeSide a sdl:SemanticType ;
+pm:TradeSide a mnf:SemanticType ;
     rdfs:label "Trade Side" ;
     rdfs:comment """Direction of a trade: "BUY" or "SELL".""" ;
-    sdl:requiredPhysicalType sdl:Varchar ;
-    sdl:hasAllowedValues [
-        a sdl:AllowedValues ;
-        sdl:allowedValue "BUY" ;
-        sdl:allowedValue "SELL"
+    mnf:requiredPhysicalType mnf:Varchar ;
+    mnf:hasAllowedValues [
+        a mnf:AllowedValues ;
+        mnf:allowedValue "BUY" ;
+        mnf:allowedValue "SELL"
     ] .
 
-pm:OutcomeIndex a sdl:SemanticType ;
+pm:OutcomeIndex a mnf:SemanticType ;
     rdfs:label "Outcome Index" ;
     rdfs:comment """Zero-based index into a market's outcome array.
         Typically 0 or 1 for binary Yes/No markets.""" ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:valueRange [ sdl:minInclusive 0 ] .
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:valueRange [ mnf:minInclusive 0 ] .
 
-pm:MarketCategory a sdl:SemanticType ;
+pm:MarketCategory a mnf:SemanticType ;
     rdfs:label "Market Category" ;
     rdfs:comment """Category label for a market (e.g. 'Politics', 'Sports',
         'Crypto'). Open-ended but constrained set from the platform.""" ;
-    sdl:requiredPhysicalType sdl:Varchar ;
-    sdl:hasAllowedValues [
-        a sdl:AllowedValues ;
+    mnf:requiredPhysicalType mnf:Varchar ;
+    mnf:hasAllowedValues [
+        a mnf:AllowedValues ;
         rdfs:comment """Representative values — not exhaustive. Polymarket
             may add new categories at any time.""" ;
-        sdl:allowedValue "Politics" ;
-        sdl:allowedValue "Sports" ;
-        sdl:allowedValue "Crypto" ;
-        sdl:allowedValue "Pop Culture" ;
-        sdl:allowedValue "Business" ;
-        sdl:allowedValue "Science"
+        mnf:allowedValue "Politics" ;
+        mnf:allowedValue "Sports" ;
+        mnf:allowedValue "Crypto" ;
+        mnf:allowedValue "Pop Culture" ;
+        mnf:allowedValue "Business" ;
+        mnf:allowedValue "Science"
     ] .
 
 # --- Scores ---
 
-pm:CompetitivenessScore a sdl:SemanticType ;
+pm:CompetitivenessScore a mnf:SemanticType ;
     rdfs:label "Market Competitiveness Score" ;
     rdfs:comment "Score from 0.0 to 1.0 indicating how competitive a market is." ;
-    sdl:requiredPhysicalType sdl:Double ;
-    sdl:valueRange [
-        sdl:minInclusive 0.0 ;
-        sdl:maxInclusive 1.0
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:valueRange [
+        mnf:minInclusive 0.0 ;
+        mnf:maxInclusive 1.0
     ] .
 
 # --- Embedded JSON ---
-# [SDL-GAP-3]: Physical type is Varchar but content is a JSON array.
+# [MNF-GAP-3]: Physical type is Varchar but content is a JSON array.
 
-pm:JSONArray a sdl:SemanticType ;
+pm:JSONArray a mnf:SemanticType ;
     rdfs:label "JSON-Serialized Array" ;
     rdfs:comment """A column whose physical type is Varchar but whose content
         is a JSON-encoded array. Examples: outcomes='["Yes","No"]',
         clobTokenIds='["1234","5678"]', bids/asks orderbook levels.
-        Columns with this type should also declare sdl:embeddedStructure
+        Columns with this type should also declare mnf:embeddedStructure
         for the inner element type.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
 # --- System-injected metadata ---
 
-pm:DataSourceLabel a sdl:SemanticType ;
+pm:DataSourceLabel a mnf:SemanticType ;
     rdfs:label "Data Source Label" ;
     rdfs:comment """Label identifying which fetcher stream produced this row
         (e.g. 'gamma/markets', 'clob/prices'). Injected by the fetcher,
         not from the API.""" ;
-    sdl:requiredPhysicalType sdl:Varchar .
+    mnf:requiredPhysicalType mnf:Varchar .
 
 
 # =============================================================================
@@ -229,18 +229,18 @@ pm:DataSourceLabel a sdl:SemanticType ;
 # 2a. MarketSnapshots (gamma/markets)
 # -----------------------------------------------------------------------------
 
-pm:MarketSnapshots a sdl:Dataset ;
+pm:MarketSnapshots a mnf:Dataset ;
     rdfs:label "Gamma Market Snapshots" ;
     rdfs:comment """Hourly snapshots of all active Polymarket markets from
         the Gamma API. ~33,500 markets per snapshot, polled every 5 minutes,
         compacted hourly. Richest schema (~30+ columns).""" ;
 
-    sdl:rowSemantics sdl:SnapshotRow ;
-    sdl:entityKey pm:mkt_id ;
-    sdl:snapshotTimestamp pm:mkt_fetched_at ;
-    sdl:schemaStability sdl:InferredSchema ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey pm:mkt_id ;
+    mnf:snapshotTimestamp pm:mkt_fetched_at ;
+    mnf:schemaStability mnf:InferredSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         pm:mkt_fetched_at ,
         pm:mkt_source ,
         pm:mkt_id ,
@@ -279,10 +279,10 @@ pm:MarketSnapshots a sdl:Dataset ;
         pm:mkt_image ,
         pm:mkt_description ;
 
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance ;
-    sdl:hasKnownDeficiency
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance ;
+    mnf:hasKnownDeficiency
         pm:deficiency_schema_inferred ,
         pm:deficiency_snapshot_dedup ,
         pm:deficiency_json_in_strings .
@@ -290,261 +290,261 @@ pm:MarketSnapshots a sdl:Dataset ;
 
 # --- Market column definitions ---
 
-pm:mkt_fetched_at a sdl:Column ;
-    sdl:columnName "_fetched_at" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:FetchTimestamp ;
-    sdl:nullable false ;
+pm:mkt_fetched_at a mnf:Column ;
+    mnf:columnName "_fetched_at" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:FetchTimestamp ;
+    mnf:nullable false ;
     rdfs:comment "Injected by fetcher, not from API." .
 
-pm:mkt_source a sdl:Column ;
-    sdl:columnName "_source" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:DataSourceLabel ;
-    sdl:nullable false ;
+pm:mkt_source a mnf:Column ;
+    mnf:columnName "_source" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:DataSourceLabel ;
+    mnf:nullable false ;
     rdfs:comment "Always 'gamma/markets'. Injected by fetcher." .
 
-pm:mkt_id a sdl:Column ;
-    sdl:columnName "id" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:MarketId ;
-    sdl:nullable false ;
+pm:mkt_id a mnf:Column ;
+    mnf:columnName "id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:MarketId ;
+    mnf:nullable false ;
     rdfs:comment "Primary entity key — same market ID repeats across snapshots." .
 
-pm:mkt_question a sdl:Column ;
-    sdl:columnName "question" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_question a mnf:Column ;
+    mnf:columnName "question" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "The market question text, e.g. 'Will X happen by Y date?'" .
 
-pm:mkt_condition_id a sdl:Column ;
-    sdl:columnName "conditionId" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ConditionId ;
-    sdl:nullable true ;
+pm:mkt_condition_id a mnf:Column ;
+    mnf:columnName "conditionId" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ConditionId ;
+    mnf:nullable true ;
     rdfs:comment """On-chain condition ID. Cross-references trades and holders.
         See pm:fk_trades_to_markets, pm:fk_holders_to_markets, and
         pm:same_entity_condition_id for formal relationships.""" .
 
-pm:mkt_slug a sdl:Column ;
-    sdl:columnName "slug" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:Slug ;
-    sdl:nullable true .
+pm:mkt_slug a mnf:Column ;
+    mnf:columnName "slug" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:Slug ;
+    mnf:nullable true .
 
-pm:mkt_outcomes a sdl:Column ;
-    sdl:columnName "outcomes" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:JSONArray ;
-    sdl:nullable true ;
+pm:mkt_outcomes a mnf:Column ;
+    mnf:columnName "outcomes" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:JSONArray ;
+    mnf:nullable true ;
     rdfs:comment "JSON-encoded array of outcome labels, e.g. '[\"Yes\",\"No\"]'." ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<string>"
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<string>"
     ] .
 
-pm:mkt_outcome_prices a sdl:Column ;
-    sdl:columnName "outcomePrices" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:JSONArray ;
-    sdl:nullable true ;
+pm:mkt_outcome_prices a mnf:Column ;
+    mnf:columnName "outcomePrices" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:JSONArray ;
+    mnf:nullable true ;
     rdfs:comment """JSON-encoded array of probability floats, e.g. '[\"0.65\",\"0.35\"]'.
         Prices encoded as strings within a JSON array within a string
         column — triple indirection.""" ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<string>" ;
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<string>" ;
         rdfs:comment "Inner strings are probability floats (0.0-1.0)."
     ] .
 
-pm:mkt_clob_token_ids a sdl:Column ;
-    sdl:columnName "clobTokenIds" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:JSONArray ;
-    sdl:nullable true ;
+pm:mkt_clob_token_ids a mnf:Column ;
+    mnf:columnName "clobTokenIds" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:JSONArray ;
+    mnf:nullable true ;
     rdfs:comment """JSON-encoded array of CLOB token IDs for this market's
         outcomes. Links to clob/prices.token_id and clob/books.asset_id.""" ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<string>" ;
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<string>" ;
         rdfs:comment "Inner strings are CLOBTokenId values."
     ] .
 
-pm:mkt_volume a sdl:Column ;
-    sdl:columnName "volume" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_volume a mnf:Column ;
+    mnf:columnName "volume" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment """Total volume as a string. The API returns this as a string;
         Polars infers Varchar. See volumeNum for the numeric version.""" .
 
-pm:mkt_volume_num a sdl:Column ;
-    sdl:columnName "volumeNum" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true ;
+pm:mkt_volume_num a mnf:Column ;
+    mnf:columnName "volumeNum" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true ;
     rdfs:comment "Numeric total trading volume in USD." .
 
-pm:mkt_volume_24hr a sdl:Column ;
-    sdl:columnName "volume24hr" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:mkt_volume_24hr a mnf:Column ;
+    mnf:columnName "volume24hr" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:mkt_volume_1wk a sdl:Column ;
-    sdl:columnName "volume1wk" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:mkt_volume_1wk a mnf:Column ;
+    mnf:columnName "volume1wk" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:mkt_volume_1mo a sdl:Column ;
-    sdl:columnName "volume1mo" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:mkt_volume_1mo a mnf:Column ;
+    mnf:columnName "volume1mo" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:mkt_volume_1yr a sdl:Column ;
-    sdl:columnName "volume1yr" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:mkt_volume_1yr a mnf:Column ;
+    mnf:columnName "volume1yr" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:mkt_liquidity a sdl:Column ;
-    sdl:columnName "liquidity" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_liquidity a mnf:Column ;
+    mnf:columnName "liquidity" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Liquidity as string from API. See liquidityNum for numeric." .
 
-pm:mkt_liquidity_num a sdl:Column ;
-    sdl:columnName "liquidityNum" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:mkt_liquidity_num a mnf:Column ;
+    mnf:columnName "liquidityNum" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:mkt_active a sdl:Column ;
-    sdl:columnName "active" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_active a mnf:Column ;
+    mnf:columnName "active" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment """Boolean indicating market is active. Stored as Varchar
         because Polars infers from JSON — may be 'true'/'false' string
         or actual boolean depending on inference.""" .
 
-pm:mkt_closed a sdl:Column ;
-    sdl:columnName "closed" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_closed a mnf:Column ;
+    mnf:columnName "closed" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Whether the market has been resolved." .
 
-pm:mkt_start_date a sdl:Column ;
-    sdl:columnName "startDate" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ISOTimestamp ;
-    sdl:nullable true .
+pm:mkt_start_date a mnf:Column ;
+    mnf:columnName "startDate" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ISOTimestamp ;
+    mnf:nullable true .
 
-pm:mkt_end_date a sdl:Column ;
-    sdl:columnName "endDate" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ISOTimestamp ;
-    sdl:nullable true .
+pm:mkt_end_date a mnf:Column ;
+    mnf:columnName "endDate" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ISOTimestamp ;
+    mnf:nullable true .
 
-pm:mkt_created_at a sdl:Column ;
-    sdl:columnName "createdAt" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ISOTimestamp ;
-    sdl:nullable true .
+pm:mkt_created_at a mnf:Column ;
+    mnf:columnName "createdAt" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ISOTimestamp ;
+    mnf:nullable true .
 
-pm:mkt_updated_at a sdl:Column ;
-    sdl:columnName "updatedAt" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ISOTimestamp ;
-    sdl:nullable true .
+pm:mkt_updated_at a mnf:Column ;
+    mnf:columnName "updatedAt" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ISOTimestamp ;
+    mnf:nullable true .
 
-pm:mkt_last_trade_price a sdl:Column ;
-    sdl:columnName "lastTradePrice" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:Probability ;
-    sdl:nullable true .
+pm:mkt_last_trade_price a mnf:Column ;
+    mnf:columnName "lastTradePrice" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:Probability ;
+    mnf:nullable true .
 
-pm:mkt_best_bid a sdl:Column ;
-    sdl:columnName "bestBid" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:Probability ;
-    sdl:nullable true .
+pm:mkt_best_bid a mnf:Column ;
+    mnf:columnName "bestBid" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:Probability ;
+    mnf:nullable true .
 
-pm:mkt_best_ask a sdl:Column ;
-    sdl:columnName "bestAsk" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:Probability ;
-    sdl:nullable true .
+pm:mkt_best_ask a mnf:Column ;
+    mnf:columnName "bestAsk" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:Probability ;
+    mnf:nullable true .
 
-pm:mkt_spread a sdl:Column ;
-    sdl:columnName "spread" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:PriceSpread ;
-    sdl:nullable true ;
+pm:mkt_spread a mnf:Column ;
+    mnf:columnName "spread" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:PriceSpread ;
+    mnf:nullable true ;
     rdfs:comment "Derived: bestAsk - bestBid." .
 
-pm:mkt_one_day_price_change a sdl:Column ;
-    sdl:columnName "oneDayPriceChange" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:PriceChange ;
-    sdl:nullable true .
+pm:mkt_one_day_price_change a mnf:Column ;
+    mnf:columnName "oneDayPriceChange" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:PriceChange ;
+    mnf:nullable true .
 
-pm:mkt_one_week_price_change a sdl:Column ;
-    sdl:columnName "oneWeekPriceChange" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:PriceChange ;
-    sdl:nullable true .
+pm:mkt_one_week_price_change a mnf:Column ;
+    mnf:columnName "oneWeekPriceChange" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:PriceChange ;
+    mnf:nullable true .
 
-pm:mkt_neg_risk a sdl:Column ;
-    sdl:columnName "negRisk" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_neg_risk a mnf:Column ;
+    mnf:columnName "negRisk" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Negative risk model flag. Boolean stored as inferred type." .
 
-pm:mkt_enable_order_book a sdl:Column ;
-    sdl:columnName "enableOrderBook" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_enable_order_book a mnf:Column ;
+    mnf:columnName "enableOrderBook" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Whether CLOB trading is enabled for this market." .
 
-pm:mkt_competitive a sdl:Column ;
-    sdl:columnName "competitive" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:CompetitivenessScore ;
-    sdl:nullable true .
+pm:mkt_competitive a mnf:Column ;
+    mnf:columnName "competitive" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:CompetitivenessScore ;
+    mnf:nullable true .
 
-pm:mkt_rewards_min_size a sdl:Column ;
-    sdl:columnName "rewardsMinSize" ;
-    sdl:physicalType sdl:Double ;
-    sdl:nullable true ;
+pm:mkt_rewards_min_size a mnf:Column ;
+    mnf:columnName "rewardsMinSize" ;
+    mnf:physicalType mnf:Double ;
+    mnf:nullable true ;
     rdfs:comment "Minimum order size to qualify for liquidity rewards." .
 
-pm:mkt_rewards_max_spread a sdl:Column ;
-    sdl:columnName "rewardsMaxSpread" ;
-    sdl:physicalType sdl:Double ;
-    sdl:nullable true ;
+pm:mkt_rewards_max_spread a mnf:Column ;
+    mnf:columnName "rewardsMaxSpread" ;
+    mnf:physicalType mnf:Double ;
+    mnf:nullable true ;
     rdfs:comment "Maximum spread to qualify for liquidity rewards." .
 
-pm:mkt_category a sdl:Column ;
-    sdl:columnName "category" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:MarketCategory ;
-    sdl:nullable true ;
+pm:mkt_category a mnf:Column ;
+    mnf:columnName "category" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:MarketCategory ;
+    mnf:nullable true ;
     rdfs:comment "Market category — see pm:MarketCategory for allowed values." .
 
-pm:mkt_image a sdl:Column ;
-    sdl:columnName "image" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_image a mnf:Column ;
+    mnf:columnName "image" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Market image URL." .
 
-pm:mkt_description a sdl:Column ;
-    sdl:columnName "description" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:mkt_description a mnf:Column ;
+    mnf:columnName "description" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Full market description text." .
 
 
@@ -552,18 +552,18 @@ pm:mkt_description a sdl:Column ;
 # 2b. EventSnapshots (gamma/events)
 # -----------------------------------------------------------------------------
 
-pm:EventSnapshots a sdl:Dataset ;
+pm:EventSnapshots a mnf:Dataset ;
     rdfs:label "Gamma Event Snapshots" ;
     rdfs:comment """Hourly snapshots of Polymarket events from the Gamma API.
         ~7,900 events per snapshot. Each event groups one or more related
         markets.""" ;
 
-    sdl:rowSemantics sdl:SnapshotRow ;
-    sdl:entityKey pm:evt_id ;
-    sdl:snapshotTimestamp pm:evt_fetched_at ;
-    sdl:schemaStability sdl:InferredSchema ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey pm:evt_id ;
+    mnf:snapshotTimestamp pm:evt_fetched_at ;
+    mnf:schemaStability mnf:InferredSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         pm:evt_fetched_at ,
         pm:evt_source ,
         pm:evt_id ,
@@ -584,131 +584,131 @@ pm:EventSnapshots a sdl:Dataset ;
         pm:evt_markets ,
         pm:evt_tags ;
 
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance ;
-    sdl:hasKnownDeficiency
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance ;
+    mnf:hasKnownDeficiency
         pm:deficiency_schema_inferred ,
         pm:deficiency_snapshot_dedup .
 
 
 # --- Event column definitions ---
 
-pm:evt_fetched_at a sdl:Column ;
-    sdl:columnName "_fetched_at" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:FetchTimestamp ;
-    sdl:nullable false .
+pm:evt_fetched_at a mnf:Column ;
+    mnf:columnName "_fetched_at" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:FetchTimestamp ;
+    mnf:nullable false .
 
-pm:evt_source a sdl:Column ;
-    sdl:columnName "_source" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:DataSourceLabel ;
-    sdl:nullable false .
+pm:evt_source a mnf:Column ;
+    mnf:columnName "_source" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:DataSourceLabel ;
+    mnf:nullable false .
 
-pm:evt_id a sdl:Column ;
-    sdl:columnName "id" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:EventId ;
-    sdl:nullable false ;
+pm:evt_id a mnf:Column ;
+    mnf:columnName "id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:EventId ;
+    mnf:nullable false ;
     rdfs:comment "Entity key for snapshot semantics." .
 
-pm:evt_title a sdl:Column ;
-    sdl:columnName "title" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:evt_title a mnf:Column ;
+    mnf:columnName "title" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:evt_slug a sdl:Column ;
-    sdl:columnName "slug" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:Slug ;
-    sdl:nullable true .
+pm:evt_slug a mnf:Column ;
+    mnf:columnName "slug" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:Slug ;
+    mnf:nullable true .
 
-pm:evt_description a sdl:Column ;
-    sdl:columnName "description" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:evt_description a mnf:Column ;
+    mnf:columnName "description" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:evt_active a sdl:Column ;
-    sdl:columnName "active" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:evt_active a mnf:Column ;
+    mnf:columnName "active" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:evt_closed a sdl:Column ;
-    sdl:columnName "closed" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:evt_closed a mnf:Column ;
+    mnf:columnName "closed" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:evt_volume a sdl:Column ;
-    sdl:columnName "volume" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:evt_volume a mnf:Column ;
+    mnf:columnName "volume" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:evt_volume_24hr a sdl:Column ;
-    sdl:columnName "volume24hr" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:evt_volume_24hr a mnf:Column ;
+    mnf:columnName "volume24hr" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:evt_liquidity a sdl:Column ;
-    sdl:columnName "liquidity" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:USDAmount ;
-    sdl:nullable true .
+pm:evt_liquidity a mnf:Column ;
+    mnf:columnName "liquidity" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:USDAmount ;
+    mnf:nullable true .
 
-pm:evt_open_interest a sdl:Column ;
-    sdl:columnName "openInterest" ;
-    sdl:physicalType sdl:Double ;
-    sdl:nullable true ;
+pm:evt_open_interest a mnf:Column ;
+    mnf:columnName "openInterest" ;
+    mnf:physicalType mnf:Double ;
+    mnf:nullable true ;
     rdfs:comment "Open interest count. Double because Polars infers from JSON." .
 
-pm:evt_start_date a sdl:Column ;
-    sdl:columnName "startDate" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ISOTimestamp ;
-    sdl:nullable true .
+pm:evt_start_date a mnf:Column ;
+    mnf:columnName "startDate" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ISOTimestamp ;
+    mnf:nullable true .
 
-pm:evt_end_date a sdl:Column ;
-    sdl:columnName "endDate" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ISOTimestamp ;
-    sdl:nullable true .
+pm:evt_end_date a mnf:Column ;
+    mnf:columnName "endDate" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ISOTimestamp ;
+    mnf:nullable true .
 
-pm:evt_competitive a sdl:Column ;
-    sdl:columnName "competitive" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:CompetitivenessScore ;
-    sdl:nullable true .
+pm:evt_competitive a mnf:Column ;
+    mnf:columnName "competitive" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:CompetitivenessScore ;
+    mnf:nullable true .
 
-pm:evt_comment_count a sdl:Column ;
-    sdl:columnName "commentCount" ;
-    sdl:physicalType sdl:Double ;
-    sdl:nullable true .
+pm:evt_comment_count a mnf:Column ;
+    mnf:columnName "commentCount" ;
+    mnf:physicalType mnf:Double ;
+    mnf:nullable true .
 
-pm:evt_neg_risk a sdl:Column ;
-    sdl:columnName "negRisk" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:evt_neg_risk a mnf:Column ;
+    mnf:columnName "negRisk" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:evt_markets a sdl:Column ;
-    sdl:columnName "markets" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:evt_markets a mnf:Column ;
+    mnf:columnName "markets" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment """JSON-serialized array of nested market objects. Each object
         contains a subset of the gamma/markets fields (~20 fields).""" ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<{id, question, conditionId, slug, outcomes, volume, ...}>" ;
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<{id, question, conditionId, slug, outcomes, volume, ...}>" ;
         rdfs:comment "Each element is a market object mirroring gamma/markets fields."
     ] .
 
-pm:evt_tags a sdl:Column ;
-    sdl:columnName "tags" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:JSONArray ;
-    sdl:nullable true ;
+pm:evt_tags a mnf:Column ;
+    mnf:columnName "tags" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:JSONArray ;
+    mnf:nullable true ;
     rdfs:comment "JSON array of tag objects associated with this event." .
 
 
@@ -716,68 +716,68 @@ pm:evt_tags a sdl:Column ;
 # 2c. PriceSnapshots (clob/prices)
 # -----------------------------------------------------------------------------
 
-pm:PriceSnapshots a sdl:Dataset ;
+pm:PriceSnapshots a mnf:Dataset ;
     rdfs:label "CLOB Price Snapshots" ;
     rdfs:comment """Hourly snapshots of CLOB token prices and midpoints.
         ~2,000 tokens polled every 30 seconds. Merges /price and /midpoint
         endpoints.""" ;
 
-    sdl:rowSemantics sdl:SnapshotRow ;
-    sdl:entityKey pm:px_token_id ;
-    sdl:snapshotTimestamp pm:px_fetched_at ;
-    sdl:schemaStability sdl:InferredSchema ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey pm:px_token_id ;
+    mnf:snapshotTimestamp pm:px_fetched_at ;
+    mnf:schemaStability mnf:InferredSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         pm:px_fetched_at ,
         pm:px_source ,
         pm:px_token_id ,
         pm:px_price ,
         pm:px_midpoint ;
 
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance ;
-    sdl:hasKnownDeficiency
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance ;
+    mnf:hasKnownDeficiency
         pm:deficiency_schema_inferred ,
         pm:deficiency_mixed_type_price .
 
 
 # --- Price column definitions ---
 
-pm:px_fetched_at a sdl:Column ;
-    sdl:columnName "_fetched_at" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:FetchTimestamp ;
-    sdl:nullable false .
+pm:px_fetched_at a mnf:Column ;
+    mnf:columnName "_fetched_at" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:FetchTimestamp ;
+    mnf:nullable false .
 
-pm:px_source a sdl:Column ;
-    sdl:columnName "_source" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:DataSourceLabel ;
-    sdl:nullable false .
+pm:px_source a mnf:Column ;
+    mnf:columnName "_source" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:DataSourceLabel ;
+    mnf:nullable false .
 
-pm:px_token_id a sdl:Column ;
-    sdl:columnName "token_id" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:CLOBTokenId ;
-    sdl:nullable false ;
+pm:px_token_id a mnf:Column ;
+    mnf:columnName "token_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:CLOBTokenId ;
+    mnf:nullable false ;
     rdfs:comment """Entity key for snapshot semantics. See
         pm:same_entity_clob_token for cross-dataset identity.""" .
 
-pm:px_price a sdl:Column ;
-    sdl:columnName "price" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:px_price a mnf:Column ;
+    mnf:columnName "price" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment """Last trade price. SHOULD be a float (0.0-1.0) but the API
         sometimes returns an error object, causing Polars to infer the
         column as Varchar in those batches. Physical type varies between
         batches: sometimes Float64, sometimes Varchar. See
         pm:deficiency_mixed_type_price.""" .
 
-pm:px_midpoint a sdl:Column ;
-    sdl:columnName "midpoint" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:px_midpoint a mnf:Column ;
+    mnf:columnName "midpoint" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Midpoint between best bid and ask. String because API returns string." .
 
 
@@ -785,17 +785,17 @@ pm:px_midpoint a sdl:Column ;
 # 2d. OrderbookSnapshots (clob/books)
 # -----------------------------------------------------------------------------
 
-pm:OrderbookSnapshots a sdl:Dataset ;
+pm:OrderbookSnapshots a mnf:Dataset ;
     rdfs:label "CLOB Orderbook Snapshots" ;
     rdfs:comment """Hourly snapshots of orderbook state for top 100 active
         tokens. Polled every 2 minutes.""" ;
 
-    sdl:rowSemantics sdl:SnapshotRow ;
-    sdl:entityKey pm:ob_asset_id ;
-    sdl:snapshotTimestamp pm:ob_fetched_at ;
-    sdl:schemaStability sdl:InferredSchema ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey pm:ob_asset_id ;
+    mnf:snapshotTimestamp pm:ob_fetched_at ;
+    mnf:schemaStability mnf:InferredSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         pm:ob_fetched_at ,
         pm:ob_source ,
         pm:ob_asset_id ,
@@ -809,99 +809,99 @@ pm:OrderbookSnapshots a sdl:Dataset ;
         pm:ob_tick_size ,
         pm:ob_neg_risk ;
 
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance ;
-    sdl:hasKnownDeficiency
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance ;
+    mnf:hasKnownDeficiency
         pm:deficiency_schema_inferred ,
         pm:deficiency_json_in_strings .
 
 
 # --- Orderbook column definitions ---
 
-pm:ob_fetched_at a sdl:Column ;
-    sdl:columnName "_fetched_at" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:FetchTimestamp ;
-    sdl:nullable false .
+pm:ob_fetched_at a mnf:Column ;
+    mnf:columnName "_fetched_at" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:FetchTimestamp ;
+    mnf:nullable false .
 
-pm:ob_source a sdl:Column ;
-    sdl:columnName "_source" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:DataSourceLabel ;
-    sdl:nullable false .
+pm:ob_source a mnf:Column ;
+    mnf:columnName "_source" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:DataSourceLabel ;
+    mnf:nullable false .
 
-pm:ob_asset_id a sdl:Column ;
-    sdl:columnName "asset_id" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:CLOBTokenId ;
-    sdl:nullable false ;
+pm:ob_asset_id a mnf:Column ;
+    mnf:columnName "asset_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:CLOBTokenId ;
+    mnf:nullable false ;
     rdfs:comment """Entity key for snapshot semantics. See
         pm:same_entity_clob_token for cross-dataset identity.""" .
 
-pm:ob_market a sdl:Column ;
-    sdl:columnName "market" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ConditionId ;
-    sdl:nullable true ;
+pm:ob_market a mnf:Column ;
+    mnf:columnName "market" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ConditionId ;
+    mnf:nullable true ;
     rdfs:comment "See pm:fk_books_to_markets for formal FK relationship." .
 
-pm:ob_timestamp a sdl:Column ;
-    sdl:columnName "timestamp" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:ob_timestamp a mnf:Column ;
+    mnf:columnName "timestamp" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Server timestamp in milliseconds as string." .
 
-pm:ob_hash a sdl:Column ;
-    sdl:columnName "hash" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:ob_hash a mnf:Column ;
+    mnf:columnName "hash" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Orderbook state hash for deduplication." .
 
-pm:ob_bids a sdl:Column ;
-    sdl:columnName "bids" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:JSONArray ;
-    sdl:nullable true ;
+pm:ob_bids a mnf:Column ;
+    mnf:columnName "bids" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:JSONArray ;
+    mnf:nullable true ;
     rdfs:comment """JSON array of bid levels.""" ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<{price: string, size: string}>"
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<{price: string, size: string}>"
     ] .
 
-pm:ob_asks a sdl:Column ;
-    sdl:columnName "asks" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:JSONArray ;
-    sdl:nullable true ;
+pm:ob_asks a mnf:Column ;
+    mnf:columnName "asks" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:JSONArray ;
+    mnf:nullable true ;
     rdfs:comment """JSON array of ask levels.""" ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<{price: string, size: string}>"
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<{price: string, size: string}>"
     ] .
 
-pm:ob_last_trade_price a sdl:Column ;
-    sdl:columnName "last_trade_price" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:ob_last_trade_price a mnf:Column ;
+    mnf:columnName "last_trade_price" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "String representation of last trade price." .
 
-pm:ob_min_order_size a sdl:Column ;
-    sdl:columnName "min_order_size" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:ob_min_order_size a mnf:Column ;
+    mnf:columnName "min_order_size" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:ob_tick_size a sdl:Column ;
-    sdl:columnName "tick_size" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:ob_tick_size a mnf:Column ;
+    mnf:columnName "tick_size" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:ob_neg_risk a sdl:Column ;
-    sdl:columnName "neg_risk" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:ob_neg_risk a mnf:Column ;
+    mnf:columnName "neg_risk" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
 
 # -----------------------------------------------------------------------------
@@ -909,7 +909,7 @@ pm:ob_neg_risk a sdl:Column ;
 # -----------------------------------------------------------------------------
 # Most event-like dataset — closest analogue to AIS broadcasts.
 
-pm:Trades a sdl:Dataset ;
+pm:Trades a mnf:Dataset ;
     rdfs:label "Trade Events" ;
     rdfs:comment """Hourly files of recent trades from the Data API. 100 trades
         polled every 60 seconds. This is the most event-like dataset —
@@ -917,10 +917,10 @@ pm:Trades a sdl:Dataset ;
         datasets. Rows are in API response order (roughly reverse
         chronological), not meaningfully sorted.""" ;
 
-    sdl:rowSemantics sdl:EventRow ;
-    sdl:schemaStability sdl:InferredSchema ;
+    mnf:rowSemantics mnf:EventRow ;
+    mnf:schemaStability mnf:InferredSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         pm:tr_fetched_at ,
         pm:tr_source ,
         pm:tr_proxy_wallet ,
@@ -942,205 +942,205 @@ pm:Trades a sdl:Dataset ;
         pm:tr_bio ,
         pm:tr_profile_image ;
 
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance ;
-    sdl:hasKnownDeficiency
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance ;
+    mnf:hasKnownDeficiency
         pm:deficiency_schema_inferred ,
         pm:deficiency_duplicate_trades .
 
 
 # --- Trade column definitions ---
 
-pm:tr_fetched_at a sdl:Column ;
-    sdl:columnName "_fetched_at" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:FetchTimestamp ;
-    sdl:nullable false .
+pm:tr_fetched_at a mnf:Column ;
+    mnf:columnName "_fetched_at" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:FetchTimestamp ;
+    mnf:nullable false .
 
-pm:tr_source a sdl:Column ;
-    sdl:columnName "_source" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:DataSourceLabel ;
-    sdl:nullable false .
+pm:tr_source a mnf:Column ;
+    mnf:columnName "_source" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:DataSourceLabel ;
+    mnf:nullable false .
 
-pm:tr_proxy_wallet a sdl:Column ;
-    sdl:columnName "proxyWallet" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ProxyWallet ;
-    sdl:nullable true .
+pm:tr_proxy_wallet a mnf:Column ;
+    mnf:columnName "proxyWallet" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ProxyWallet ;
+    mnf:nullable true .
 
-pm:tr_side a sdl:Column ;
-    sdl:columnName "side" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:TradeSide ;
-    sdl:nullable true ;
+pm:tr_side a mnf:Column ;
+    mnf:columnName "side" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:TradeSide ;
+    mnf:nullable true ;
     rdfs:comment "See pm:TradeSide for allowed values." .
 
-pm:tr_asset a sdl:Column ;
-    sdl:columnName "asset" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:CLOBTokenId ;
-    sdl:nullable true ;
+pm:tr_asset a mnf:Column ;
+    mnf:columnName "asset" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:CLOBTokenId ;
+    mnf:nullable true ;
     rdfs:comment "See pm:fk_trades_to_prices for formal FK relationship." .
 
-pm:tr_condition_id a sdl:Column ;
-    sdl:columnName "conditionId" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ConditionId ;
-    sdl:nullable true ;
+pm:tr_condition_id a mnf:Column ;
+    mnf:columnName "conditionId" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ConditionId ;
+    mnf:nullable true ;
     rdfs:comment "See pm:fk_trades_to_markets and pm:same_entity_condition_id." .
 
-pm:tr_size a sdl:Column ;
-    sdl:columnName "size" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:TradeSize ;
-    sdl:nullable true .
+pm:tr_size a mnf:Column ;
+    mnf:columnName "size" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:TradeSize ;
+    mnf:nullable true .
 
-pm:tr_price a sdl:Column ;
-    sdl:columnName "price" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:Probability ;
-    sdl:nullable true .
+pm:tr_price a mnf:Column ;
+    mnf:columnName "price" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:Probability ;
+    mnf:nullable true .
 
-pm:tr_timestamp a sdl:Column ;
-    sdl:columnName "timestamp" ;
-    sdl:physicalType sdl:Double ;
-    sdl:nullable true ;
+pm:tr_timestamp a mnf:Column ;
+    mnf:columnName "timestamp" ;
+    mnf:physicalType mnf:Double ;
+    mnf:nullable true ;
     rdfs:comment "Unix timestamp of the trade. Double because JSON-inferred." .
 
-pm:tr_title a sdl:Column ;
-    sdl:columnName "title" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:tr_title a mnf:Column ;
+    mnf:columnName "title" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Denormalized market title from the trade response." .
 
-pm:tr_slug a sdl:Column ;
-    sdl:columnName "slug" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:Slug ;
-    sdl:nullable true .
+pm:tr_slug a mnf:Column ;
+    mnf:columnName "slug" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:Slug ;
+    mnf:nullable true .
 
-pm:tr_event_slug a sdl:Column ;
-    sdl:columnName "eventSlug" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:Slug ;
-    sdl:nullable true .
+pm:tr_event_slug a mnf:Column ;
+    mnf:columnName "eventSlug" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:Slug ;
+    mnf:nullable true .
 
-pm:tr_outcome a sdl:Column ;
-    sdl:columnName "outcome" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:tr_outcome a mnf:Column ;
+    mnf:columnName "outcome" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Outcome label (e.g. 'Yes', 'No'). Values vary per market." .
 
-pm:tr_outcome_index a sdl:Column ;
-    sdl:columnName "outcomeIndex" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:OutcomeIndex ;
-    sdl:nullable true .
+pm:tr_outcome_index a mnf:Column ;
+    mnf:columnName "outcomeIndex" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:OutcomeIndex ;
+    mnf:nullable true .
 
-pm:tr_name a sdl:Column ;
-    sdl:columnName "name" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:tr_name a mnf:Column ;
+    mnf:columnName "name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "Trader display name (denormalized from user profile)." .
 
-pm:tr_pseudonym a sdl:Column ;
-    sdl:columnName "pseudonym" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:tr_pseudonym a mnf:Column ;
+    mnf:columnName "pseudonym" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:tr_transaction_hash a sdl:Column ;
-    sdl:columnName "transactionHash" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:TransactionHash ;
-    sdl:nullable true .
+pm:tr_transaction_hash a mnf:Column ;
+    mnf:columnName "transactionHash" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:TransactionHash ;
+    mnf:nullable true .
 
-pm:tr_icon a sdl:Column ;
-    sdl:columnName "icon" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:tr_icon a mnf:Column ;
+    mnf:columnName "icon" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:tr_bio a sdl:Column ;
-    sdl:columnName "bio" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:tr_bio a mnf:Column ;
+    mnf:columnName "bio" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
-pm:tr_profile_image a sdl:Column ;
-    sdl:columnName "profileImage" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true .
+pm:tr_profile_image a mnf:Column ;
+    mnf:columnName "profileImage" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
 
 
 # -----------------------------------------------------------------------------
 # 2f. HolderSnapshots (data_api/holders)
 # -----------------------------------------------------------------------------
 
-pm:HolderSnapshots a sdl:Dataset ;
+pm:HolderSnapshots a mnf:Dataset ;
     rdfs:label "Token Holder Snapshots" ;
     rdfs:comment """Hourly snapshots of top 20 holders per token for first 50
         known markets. Polled every 10 minutes. Snapshot semantics keyed
         by (condition_id, token) — composite entity key.""" ;
 
-    sdl:rowSemantics sdl:SnapshotRow ;
-    sdl:entityKey pm:hld_condition_id ;
-    sdl:entityKey pm:hld_token ;
-    sdl:snapshotTimestamp pm:hld_fetched_at ;
-    sdl:schemaStability sdl:InferredSchema ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey pm:hld_condition_id ;
+    mnf:entityKey pm:hld_token ;
+    mnf:snapshotTimestamp pm:hld_fetched_at ;
+    mnf:schemaStability mnf:InferredSchema ;
 
-    sdl:hasColumn
+    mnf:hasColumn
         pm:hld_fetched_at ,
         pm:hld_source ,
         pm:hld_condition_id ,
         pm:hld_token ,
         pm:hld_holders ;
 
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance ;
-    sdl:hasKnownDeficiency
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance ;
+    mnf:hasKnownDeficiency
         pm:deficiency_schema_inferred ,
         pm:deficiency_snapshot_dedup .
 
 
 # --- Holder column definitions ---
 
-pm:hld_fetched_at a sdl:Column ;
-    sdl:columnName "_fetched_at" ;
-    sdl:physicalType sdl:Double ;
-    sdl:semanticType pm:FetchTimestamp ;
-    sdl:nullable false .
+pm:hld_fetched_at a mnf:Column ;
+    mnf:columnName "_fetched_at" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType pm:FetchTimestamp ;
+    mnf:nullable false .
 
-pm:hld_source a sdl:Column ;
-    sdl:columnName "_source" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:DataSourceLabel ;
-    sdl:nullable false .
+pm:hld_source a mnf:Column ;
+    mnf:columnName "_source" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:DataSourceLabel ;
+    mnf:nullable false .
 
-pm:hld_condition_id a sdl:Column ;
-    sdl:columnName "condition_id" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:ConditionId ;
-    sdl:nullable false ;
+pm:hld_condition_id a mnf:Column ;
+    mnf:columnName "condition_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:ConditionId ;
+    mnf:nullable false ;
     rdfs:comment """Enriched by the fetcher (not in the API response directly).
         See pm:fk_holders_to_markets and pm:same_entity_condition_id.""" .
 
-pm:hld_token a sdl:Column ;
-    sdl:columnName "token" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:semanticType pm:CLOBTokenId ;
-    sdl:nullable false ;
+pm:hld_token a mnf:Column ;
+    mnf:columnName "token" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType pm:CLOBTokenId ;
+    mnf:nullable false ;
     rdfs:comment "See pm:same_entity_clob_token for cross-dataset identity." .
 
-pm:hld_holders a sdl:Column ;
-    sdl:columnName "holders" ;
-    sdl:physicalType sdl:Varchar ;
-    sdl:nullable true ;
+pm:hld_holders a mnf:Column ;
+    mnf:columnName "holders" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
     rdfs:comment "JSON-serialized array of holder objects." ;
-    sdl:embeddedStructure [
-        a sdl:EmbeddedStructure ;
-        sdl:embeddedFormat sdl:JSONEncoding ;
-        sdl:embeddedElementType "array<{proxyWallet: string, name: string, pseudonym: string, asset: string, amount: float, outcomeIndex: int, displayUsernamePublic: bool, verified: bool}>"
+    mnf:embeddedStructure [
+        a mnf:EmbeddedStructure ;
+        mnf:embeddedFormat mnf:JSONEncoding ;
+        mnf:embeddedElementType "array<{proxyWallet: string, name: string, pseudonym: string, asset: string, amount: float, outcomeIndex: int, displayUsernamePublic: bool, verified: bool}>"
     ] .
 
 
@@ -1149,34 +1149,34 @@ pm:hld_holders a sdl:Column ;
 # -----------------------------------------------------------------------------
 # Near-static reference data refreshed daily. Simpler schemas.
 
-pm:Tags a sdl:Dataset ;
+pm:Tags a mnf:Dataset ;
     rdfs:label "Gamma Tags" ;
     rdfs:comment """Near-static reference table of tags used to categorize
         markets. Refreshed daily. Columns: _fetched_at, _source, id,
         label, slug, publishedAt, createdAt, updatedAt,
         requiresTranslation.""" ;
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance .
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance .
 
-pm:Series a sdl:Dataset ;
+pm:Series a mnf:Dataset ;
     rdfs:label "Gamma Series" ;
     rdfs:comment """Reference table of market series (recurring market groups).
         ~200 entries, refreshed daily. Columns: _fetched_at, _source,
         id, title, ticker, slug, seriesType, recurrence, active, closed,
         volume, volume24hr, liquidity, commentCount.""" ;
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance .
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance .
 
-pm:Sports a sdl:Dataset ;
+pm:Sports a mnf:Dataset ;
     rdfs:label "Gamma Sports" ;
     rdfs:comment """Reference table of sport categories for sports betting
         markets. ~100 entries, refreshed daily. Columns: _fetched_at,
         _source, id, sport, image, resolution, ordering, tags, series.""" ;
-    sdl:hasPhysicalLayout pm:snapshot_layout ;
-    sdl:partitionedBy pm:hourly_hive_partition ;
-    sdl:hasProvenance pm:polymarket_provenance .
+    mnf:hasPhysicalLayout pm:snapshot_layout ;
+    mnf:partitionedBy pm:hourly_hive_partition ;
+    mnf:hasProvenance pm:polymarket_provenance .
 
 
 # =============================================================================
@@ -1185,43 +1185,43 @@ pm:Sports a sdl:Dataset ;
 
 # --- _fetched_at and _source are injected by the fetcher ---
 
-pm:derive_fetched_at a sdl:Derivation ;
+pm:derive_fetched_at a mnf:Derivation ;
     rdfs:comment """_fetched_at is injected by the polymarket-fetcher at
         collection time using time.time(). Not derived from any API field.
         It is a system-injected column present in all datasets.""" ;
-    sdl:derivedColumn pm:mkt_fetched_at ;
-    sdl:derivationFunction pm:FetcherTimestampInjection ;
-    sdl:hasDerivationProperty sdl:Deterministic .
+    mnf:derivedColumn pm:mkt_fetched_at ;
+    mnf:derivationFunction pm:FetcherTimestampInjection ;
+    mnf:hasDerivationProperty mnf:Deterministic .
 
-pm:derive_source a sdl:Derivation ;
+pm:derive_source a mnf:Derivation ;
     rdfs:comment """_source is injected by the fetcher to identify the
         stream that produced the row. Constant within each dataset.""" ;
-    sdl:derivedColumn pm:mkt_source ;
-    sdl:derivationFunction pm:FetcherSourceInjection ;
-    sdl:hasDerivationProperty sdl:Deterministic .
+    mnf:derivedColumn pm:mkt_source ;
+    mnf:derivationFunction pm:FetcherSourceInjection ;
+    mnf:hasDerivationProperty mnf:Deterministic .
 
 # --- spread = bestAsk - bestBid ---
 
-pm:derive_spread a sdl:Derivation ;
+pm:derive_spread a mnf:Derivation ;
     rdfs:comment """Market spread is computed by the Gamma API as
         bestAsk - bestBid. Included in the API response, not computed
         by the fetcher, but is a derived quantity.""" ;
-    sdl:derivedColumn pm:mkt_spread ;
-    sdl:sourceColumn pm:mkt_best_ask ;
-    sdl:sourceColumn pm:mkt_best_bid ;
-    sdl:derivationFunction pm:SpreadFromBidAsk ;
-    sdl:hasDerivationProperty sdl:Deterministic ;
-    sdl:hasDerivationProperty sdl:Invertible .
+    mnf:derivedColumn pm:mkt_spread ;
+    mnf:sourceColumn pm:mkt_best_ask ;
+    mnf:sourceColumn pm:mkt_best_bid ;
+    mnf:derivationFunction pm:SpreadFromBidAsk ;
+    mnf:hasDerivationProperty mnf:Deterministic ;
+    mnf:hasDerivationProperty mnf:Invertible .
 
 # --- condition_id in holders is enriched by the fetcher ---
 
-pm:derive_holder_condition_id a sdl:Derivation ;
+pm:derive_holder_condition_id a mnf:Derivation ;
     rdfs:comment """The condition_id column in holders is injected by the
         fetcher based on the market being queried. The API response
         contains only the holder data, not the market identifier.""" ;
-    sdl:derivedColumn pm:hld_condition_id ;
-    sdl:derivationFunction pm:FetcherConditionIdEnrichment ;
-    sdl:hasDerivationProperty sdl:Deterministic .
+    mnf:derivedColumn pm:hld_condition_id ;
+    mnf:derivationFunction pm:FetcherConditionIdEnrichment ;
+    mnf:hasDerivationProperty mnf:Deterministic .
 
 # --- Derivation function definitions ---
 
@@ -1247,8 +1247,8 @@ pm:FetcherConditionIdEnrichment a rdfs:Resource ;
 
 # --- Physical layout (shared by all datasets) ---
 
-pm:snapshot_layout a sdl:PhysicalLayout ;
-    sdl:fileFormat sdl:Parquet ;
+pm:snapshot_layout a mnf:PhysicalLayout ;
+    mnf:fileFormat mnf:Parquet ;
     rdfs:comment """All datasets use zstd-compressed Parquet files with no
         meaningful row ordering. Rows arrive in API poll order.
         No hasRowOrdering declared — rows are in arrival/poll order
@@ -1256,25 +1256,25 @@ pm:snapshot_layout a sdl:PhysicalLayout ;
 
 # --- Partition scheme ---
 
-pm:hourly_hive_partition a sdl:CompositePartitionScheme ;
-    sdl:pathTemplate "data/parquet/{stream}/dt={date}/hour={hour}.parquet" ;
+pm:hourly_hive_partition a mnf:CompositePartitionScheme ;
+    mnf:pathTemplate "data/parquet/{stream}/dt={date}/hour={hour}.parquet" ;
     rdfs:comment """Two-level Hive partitioning: dt=YYYY-MM-DD/hour=HH.
         Partition keys (dt, hour) are NOT embedded as columns in the
         Parquet files — they exist only in the directory path. This
         differs from AIS where the partition date is a column.""" ;
 
-    sdl:hasPartitionLevel [
-        a sdl:PartitionLevel ;
-        sdl:levelPrecedence 1 ;
-        sdl:levelColumn "dt" ;
-        sdl:levelGranularity sdl:Daily
+    mnf:hasPartitionLevel [
+        a mnf:PartitionLevel ;
+        mnf:levelPrecedence 1 ;
+        mnf:levelColumn "dt" ;
+        mnf:levelGranularity mnf:Daily
     ] ;
 
-    sdl:hasPartitionLevel [
-        a sdl:PartitionLevel ;
-        sdl:levelPrecedence 2 ;
-        sdl:levelColumn "hour" ;
-        sdl:levelGranularity sdl:Hourly
+    mnf:hasPartitionLevel [
+        a mnf:PartitionLevel ;
+        mnf:levelPrecedence 2 ;
+        mnf:levelColumn "hour" ;
+        mnf:levelGranularity mnf:Hourly
     ] .
 
 
@@ -1282,9 +1282,9 @@ pm:hourly_hive_partition a sdl:CompositePartitionScheme ;
 # PART 5: Provenance and Known Deficiencies
 # =============================================================================
 
-pm:polymarket_provenance a sdl:Provenance ;
-    sdl:source <https://polymarket.com> ;
-    sdl:sourceDescription """Polymarket prediction market platform. Data collected
+pm:polymarket_provenance a mnf:Provenance ;
+    mnf:source <https://polymarket.com> ;
+    mnf:sourceDescription """Polymarket prediction market platform. Data collected
         from three API families:
         - Gamma API (gamma.polymarket.com): market/event metadata
         - CLOB API (clob.polymarket.com): orderbook and price data
@@ -1293,18 +1293,18 @@ pm:polymarket_provenance a sdl:Provenance ;
         (prices) to 10 minutes (holders) and writes JSONL files that are
         compacted to Parquet hourly.""" ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "collection" ;
-        sdl:transformationDescription """HTTP polling at configured intervals.
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "collection" ;
+        mnf:transformationDescription """HTTP polling at configured intervals.
             Each poll appends rows with _fetched_at and _source metadata
             to hourly JSONL files."""
     ] ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "compaction" ;
-        sdl:transformationDescription """Hourly JSONL files are compacted to
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "compaction" ;
+        mnf:transformationDescription """Hourly JSONL files are compacted to
             Parquet using pl.read_ndjson(src, ignore_errors=True) followed
             by write_parquet with zstd compression. Schema is entirely
             Polars-inferred — the schema.py definitions exist but are
@@ -1313,19 +1313,19 @@ pm:polymarket_provenance a sdl:Provenance ;
             each batch."""
     ] ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "enrichment" ;
-        sdl:transformationDescription """The fetcher injects _fetched_at
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "enrichment" ;
+        mnf:transformationDescription """The fetcher injects _fetched_at
             (Unix timestamp) and _source (stream name) into every record.
             For holders, the fetcher also injects condition_id based on
             the market being queried."""
     ] ;
 
-    sdl:hasTransformation [
-        a sdl:Transformation ;
-        sdl:transformationType "hive_partitioning" ;
-        sdl:transformationDescription """Compacted Parquet files are placed in
+    mnf:hasTransformation [
+        a mnf:Transformation ;
+        mnf:transformationType "hive_partitioning" ;
+        mnf:transformationDescription """Compacted Parquet files are placed in
             Hive-style directory partitions: dt=YYYY-MM-DD/hour=HH.
             Partition values are derived from the JSONL filename
             timestamp, not from data content."""
@@ -1334,96 +1334,96 @@ pm:polymarket_provenance a sdl:Provenance ;
 
 # --- Known deficiencies ---
 
-pm:deficiency_schema_inferred a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """Parquet schemas are inferred by Polars from
+pm:deficiency_schema_inferred a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Parquet schemas are inferred by Polars from
         JSON, not declared. The schema.py file in the fetcher defines type
         hints but they are NOT applied during compaction. Columns may appear
         or disappear depending on API response changes. Types may vary
         between hourly files if Polars infers differently from different
-        data batches. Datasets declare sdl:schemaStability sdl:InferredSchema
+        data batches. Datasets declare mnf:schemaStability mnf:InferredSchema
         to signal this.""" ;
-    sdl:impact """Column presence and types cannot be relied upon across files.
+    mnf:impact """Column presence and types cannot be relied upon across files.
         Query code should use permissive schema handling and type coercion.
         New columns may appear without notice when Polymarket updates
         their API responses.""" ;
-    sdl:severity sdl:Moderate .
+    mnf:severity mnf:Moderate .
 
-pm:deficiency_snapshot_dedup a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """Snapshot datasets (markets, events, prices,
+pm:deficiency_snapshot_dedup a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Snapshot datasets (markets, events, prices,
         holders) contain the same entity polled multiple times per hour.
         Within a single hourly file, the same market/event/token may appear
         multiple times with slightly different values. No deduplication is
         performed by the compactor.""" ;
-    sdl:impact """Consumers must deduplicate by entity key + _fetched_at to
+    mnf:impact """Consumers must deduplicate by entity key + _fetched_at to
         get point-in-time snapshots, or take the latest _fetched_at per
         entity for the most recent state.""" ;
-    sdl:severity sdl:Moderate .
+    mnf:severity mnf:Moderate .
 
-pm:deficiency_json_in_strings a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """Several columns store structured data as JSON
+pm:deficiency_json_in_strings a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Several columns store structured data as JSON
         strings rather than native Parquet nested types: outcomes,
         outcomePrices, clobTokenIds (in markets), bids/asks (in books),
         holders (in holders), markets/tags (in events). This happens
         because the compactor does not parse these fields into structured
         columns.""" ;
-    sdl:impact """Consumers must parse JSON from these string columns before
+    mnf:impact """Consumers must parse JSON from these string columns before
         use. This prevents Parquet-level type checking and pushdown
         predicates on nested fields.""" ;
-    sdl:severity sdl:Minor .
+    mnf:severity mnf:Minor .
 
-pm:deficiency_mixed_type_price a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """The 'price' column in clob/prices may contain
+pm:deficiency_mixed_type_price a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """The 'price' column in clob/prices may contain
         either a float value (the actual price) or an error object string
         when the CLOB API returns an error for a specific token. Since the
         compactor uses ignore_errors=True, these error responses are silently
         mixed in with valid data.""" ;
-    sdl:impact """Price analysis must filter for valid float values. Rows with
+    mnf:impact """Price analysis must filter for valid float values. Rows with
         error objects will appear as null after type coercion, or as strings
         if the column was inferred as Varchar for that batch.""" ;
-    sdl:severity sdl:Moderate .
+    mnf:severity mnf:Moderate .
 
-pm:deficiency_duplicate_trades a sdl:KnownDeficiency ;
-    sdl:deficiencyDescription """The trades dataset may contain duplicate trades
+pm:deficiency_duplicate_trades a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """The trades dataset may contain duplicate trades
         across consecutive polls if the same trade appears in multiple API
         responses. The fetcher polls the most recent 100 trades every 60
         seconds, so overlapping windows produce duplicates.""" ;
-    sdl:impact """Consumers should deduplicate by transactionHash (which is
+    mnf:impact """Consumers should deduplicate by transactionHash (which is
         unique per on-chain trade) before aggregation.""" ;
-    sdl:severity sdl:Moderate .
+    mnf:severity mnf:Moderate .
 
 
 # =============================================================================
 # PART 6: Foreign Key Relationships
 # =============================================================================
 
-pm:fk_trades_to_markets a sdl:ForeignKey ;
+pm:fk_trades_to_markets a mnf:ForeignKey ;
     rdfs:label "Trades → Markets (via conditionId)" ;
-    sdl:foreignKeyFrom pm:tr_condition_id ;
-    sdl:foreignKeyTo pm:mkt_condition_id ;
-    sdl:referentialIntegrity sdl:PartialIntegrity ;
+    mnf:foreignKeyFrom pm:tr_condition_id ;
+    mnf:foreignKeyTo pm:mkt_condition_id ;
+    mnf:referentialIntegrity mnf:PartialIntegrity ;
     rdfs:comment """Trade conditionId references the market's on-chain condition
         ID. Partial integrity: some trades may reference markets no longer
         in active snapshots (resolved markets drop out of the poll).""" .
 
-pm:fk_trades_to_prices a sdl:ForeignKey ;
+pm:fk_trades_to_prices a mnf:ForeignKey ;
     rdfs:label "Trades → Prices (via asset/token_id)" ;
-    sdl:foreignKeyFrom pm:tr_asset ;
-    sdl:foreignKeyTo pm:px_token_id ;
-    sdl:referentialIntegrity sdl:PartialIntegrity ;
+    mnf:foreignKeyFrom pm:tr_asset ;
+    mnf:foreignKeyTo pm:px_token_id ;
+    mnf:referentialIntegrity mnf:PartialIntegrity ;
     rdfs:comment "Trade asset references the CLOB token ID in price snapshots." .
 
-pm:fk_holders_to_markets a sdl:ForeignKey ;
+pm:fk_holders_to_markets a mnf:ForeignKey ;
     rdfs:label "Holders → Markets (via condition_id)" ;
-    sdl:foreignKeyFrom pm:hld_condition_id ;
-    sdl:foreignKeyTo pm:mkt_condition_id ;
-    sdl:referentialIntegrity sdl:PartialIntegrity ;
+    mnf:foreignKeyFrom pm:hld_condition_id ;
+    mnf:foreignKeyTo pm:mkt_condition_id ;
+    mnf:referentialIntegrity mnf:PartialIntegrity ;
     rdfs:comment "Holder condition_id references the market's condition ID." .
 
-pm:fk_books_to_markets a sdl:ForeignKey ;
+pm:fk_books_to_markets a mnf:ForeignKey ;
     rdfs:label "Books → Markets (via market/conditionId)" ;
-    sdl:foreignKeyFrom pm:ob_market ;
-    sdl:foreignKeyTo pm:mkt_condition_id ;
-    sdl:referentialIntegrity sdl:PartialIntegrity ;
+    mnf:foreignKeyFrom pm:ob_market ;
+    mnf:foreignKeyTo pm:mkt_condition_id ;
+    mnf:referentialIntegrity mnf:PartialIntegrity ;
     rdfs:comment "Orderbook market field references the market's condition ID." .
 
 
@@ -1431,23 +1431,23 @@ pm:fk_books_to_markets a sdl:ForeignKey ;
 # PART 7: Cross-Dataset Entity Identity
 # =============================================================================
 
-pm:same_entity_condition_id a sdl:SameEntity ;
+pm:same_entity_condition_id a mnf:SameEntity ;
     rdfs:label "Condition ID identifies the same market across datasets" ;
     rdfs:comment """The on-chain condition ID is the canonical market identifier
         linking gamma/markets, data_api/trades, data_api/holders, and
         clob/books. Values are joinable across these datasets.""" ;
-    sdl:identifyingColumn pm:mkt_condition_id ;
-    sdl:identifyingColumn pm:tr_condition_id ;
-    sdl:identifyingColumn pm:hld_condition_id ;
-    sdl:identifyingColumn pm:ob_market .
+    mnf:identifyingColumn pm:mkt_condition_id ;
+    mnf:identifyingColumn pm:tr_condition_id ;
+    mnf:identifyingColumn pm:hld_condition_id ;
+    mnf:identifyingColumn pm:ob_market .
 
-pm:same_entity_clob_token a sdl:SameEntity ;
+pm:same_entity_clob_token a mnf:SameEntity ;
     rdfs:label "CLOB token ID identifies the same token across datasets" ;
     rdfs:comment """The CLOB token ID links clob/prices, clob/books,
         data_api/trades, and data_api/holders. Note that gamma/markets
         also references tokens via the clobTokenIds JSON array column,
         but that requires JSON parsing to join.""" ;
-    sdl:identifyingColumn pm:px_token_id ;
-    sdl:identifyingColumn pm:ob_asset_id ;
-    sdl:identifyingColumn pm:tr_asset ;
-    sdl:identifyingColumn pm:hld_token .
+    mnf:identifyingColumn pm:px_token_id ;
+    mnf:identifyingColumn pm:ob_asset_id ;
+    mnf:identifyingColumn pm:tr_asset ;
+    mnf:identifyingColumn pm:hld_token .

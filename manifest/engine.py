@@ -1,9 +1,9 @@
 """
 Validation engine — the core orchestrator.
 
-Reads SDL graph metadata and dispatches validators in cost order.
+Reads Manifest graph metadata and dispatches validators in cost order.
 This is the graph-driven part: the engine doesn't know about AIS or any
-specific domain. It reads the SDL descriptions and figures out what to check.
+specific domain. It reads the Manifest descriptions and figures out what to check.
 """
 
 from __future__ import annotations
@@ -11,8 +11,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from sdl.graph import SDLGraph
-from sdl.model import (
+from manifest.graph import ManifestGraph
+from manifest.model import (
     Attestation,
     ColumnInfo,
     ComputationalProfile,
@@ -21,30 +21,30 @@ from sdl.model import (
     SemanticTypeInfo,
     ValidationResult,
 )
-from sdl.validators.aggregation import validate_aggregation_sample
-from sdl.validators.ordering import (
+from manifest.validators.aggregation import validate_aggregation_sample
+from manifest.validators.ordering import (
     validate_monotonic_within_groups,
     validate_row_ordering,
 )
-from sdl.validators.schema import validate_column_presence, validate_physical_types
-from sdl.validators.values import validate_constant_column, validate_value_ranges
+from manifest.validators.schema import validate_column_presence, validate_physical_types
+from manifest.validators.values import validate_constant_column, validate_value_ranges
 
 
 class ValidationEngine:
     """
     Graph-driven validation engine.
 
-    Given an SDLGraph and a file path, it:
+    Given a ManifestGraph and a file path, it:
     1. Identifies the dataset the file belongs to
     2. Reads column definitions, semantic types, constraints
     3. Dispatches validators in cost order (cheapest first)
     4. Collects and returns attestations
 
     The engine is domain-agnostic. All domain knowledge comes from
-    the SDL Turtle files.
+    the Manifest Turtle files.
     """
 
-    def __init__(self, graph: SDLGraph) -> None:
+    def __init__(self, graph: ManifestGraph) -> None:
         self.graph = graph
 
     def validate_file(
@@ -58,18 +58,18 @@ class ValidationEngine:
         verbose: bool = False,
     ) -> list[Attestation]:
         """
-        Validate a file against its SDL dataset description.
+        Validate a file against its Manifest dataset description.
 
         Parameters
         ----------
         file_path : Path
             Path to the Parquet file to validate.
         dataset_uri : str
-            SDL URI of the dataset (e.g. "ais:DailyBroadcasts").
+            Manifest URI of the dataset (e.g. "ais:DailyBroadcasts").
         companion_path : Path, optional
             Path to a companion file (e.g. corresponding index file).
         companion_dataset_uri : str, optional
-            SDL URI of the companion dataset.
+            MNF URI of the companion dataset.
         max_profile : ComputationalProfile
             Stop at this cost level. Useful for quick checks.
         verbose : bool
@@ -136,7 +136,7 @@ class ValidationEngine:
     def _check_schema(
         self, file_path: Path, dataset: DatasetInfo
     ) -> list[Attestation]:
-        """Dispatch schema-level checks from SDL column declarations."""
+        """Dispatch schema-level checks from Manifest column declarations."""
         # Build expected types map from columns that have physical types
         expected_types: dict[str, str] = {
             col.name: col.physical_type
@@ -177,7 +177,7 @@ class ValidationEngine:
             # Check required physical type (semantic type level)
             # This is redundant with schema check but at a different level —
             # it validates the semantic type's own requirement, not just the
-            # SDL column declaration.
+            # MNF column declaration.
 
             # Collect range constraints
             has_range = any(v is not None for v in [
@@ -244,9 +244,9 @@ class ValidationEngine:
         seq_col: str | None = None
 
         for key in keys:
-            if key.semantic == "sdl:ClusteringForIndex":
+            if key.semantic == "mnf:ClusteringForIndex":
                 group_col = key.column_name
-            elif key.semantic == "sdl:MeaningfulSequence":
+            elif key.semantic == "mnf:MeaningfulSequence":
                 seq_col = key.column_name
 
         if group_col and seq_col:

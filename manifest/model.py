@@ -1,4 +1,4 @@
-"""Core data model types for SDL validation."""
+"""Core data model types for MNF validation."""
 
 from __future__ import annotations
 
@@ -27,23 +27,23 @@ class ComputationalProfile(Enum):
     @classmethod
     def from_uri(cls, uri: str) -> ComputationalProfile:
         mapping: dict[str, ComputationalProfile] = {
-            "sdl:SchemaCheckOnly": cls.SCHEMA_CHECK,
-            "sdl:PerValueCheck": cls.PER_VALUE,
-            "sdl:FullScanRequired": cls.FULL_SCAN,
-            "sdl:SequentialScan": cls.SEQUENTIAL_SCAN,
-            "sdl:ExternalService": cls.EXTERNAL_SERVICE,
+            "mnf:SchemaCheckOnly": cls.SCHEMA_CHECK,
+            "mnf:PerValueCheck": cls.PER_VALUE,
+            "mnf:FullScanRequired": cls.FULL_SCAN,
+            "mnf:SequentialScan": cls.SEQUENTIAL_SCAN,
+            "mnf:ExternalService": cls.EXTERNAL_SERVICE,
         }
         suffix = uri.rsplit("#", 1)[-1] if "#" in uri else uri.rsplit("/", 1)[-1]
         # Try both full URI and suffix
-        return mapping.get(uri, mapping.get(f"sdl:{suffix}", cls.FULL_SCAN))
+        return mapping.get(uri, mapping.get(f"mnf:{suffix}", cls.FULL_SCAN))
 
 
 @dataclass
 class ColumnInfo:
-    """Resolved column metadata from the SDL graph."""
+    """Resolved column metadata from the MNF graph."""
     uri: str
     name: str
-    physical_type: str          # e.g. "sdl:Integer"
+    physical_type: str          # e.g. "mnf:Integer"
     semantic_type: str | None   # e.g. "ais:MMSI"
     nullable: bool = True
 
@@ -81,7 +81,7 @@ class OrderingKeyInfo:
     column_name: str
     direction: str  # "ascending" or "descending"
     precedence: int
-    semantic: str   # e.g. "sdl:ClusteringForIndex"
+    semantic: str   # e.g. "mnf:ClusteringForIndex"
 
 
 @dataclass
@@ -91,7 +91,7 @@ class DerivationInfo:
     derived_column: str     # column name
     source_columns: list[str]
     function_uri: str
-    properties: list[str]   # e.g. ["sdl:Deterministic", "sdl:Lossy"]
+    properties: list[str]   # e.g. ["mnf:Deterministic", "mnf:Lossy"]
 
 
 @dataclass
@@ -99,7 +99,7 @@ class AggregatedColumnInfo:
     """How one target column is aggregated from source columns."""
     target_column: str       # column name in target dataset
     source_columns: list[str]  # column name(s) in source dataset
-    function_uri: str         # e.g. "sdl:Min", "ais:MaxConsecutiveImpliedSpeed"
+    function_uri: str         # e.g. "mnf:Min", "ais:MaxConsecutiveImpliedSpeed"
     within_group_ordering: str | None = None  # column name for order-dependent aggs
 
 
@@ -138,17 +138,17 @@ class Attestation:
         """Serialise as Turtle triples for writing back to the graph."""
         node_id = f"{prefix}_{abs(hash((self.constraint_uri, self.file_path, self.timestamp.isoformat())))}"
         lines = [
-            f'{node_id} a sdl:VerificationAttestation ;',
-            f'    sdl:verifiedConstraint <{self.constraint_uri}> ;',
-            f'    sdl:verifiedDataset <{self.dataset_uri}> ;',
-            f'    sdl:verificationTime "{self.timestamp.isoformat()}"^^xsd:dateTime ;',
-            f'    sdl:verificationResult sdl:{self.result.value.capitalize()} ;',
+            f'{node_id} a mnf:VerificationAttestation ;',
+            f'    mnf:verifiedConstraint <{self.constraint_uri}> ;',
+            f'    mnf:verifiedDataset <{self.dataset_uri}> ;',
+            f'    mnf:verificationTime "{self.timestamp.isoformat()}"^^xsd:dateTime ;',
+            f'    mnf:verificationResult mnf:{self.result.value.capitalize()} ;',
         ]
         if self.file_path:
-            lines.append(f'    sdl:verifiedFile "{self.file_path}" ;')
+            lines.append(f'    mnf:verifiedFile "{self.file_path}" ;')
         if self.details:
             escaped = self.details.replace('\\', '\\\\').replace('"', '\\"')
-            lines.append(f'    sdl:verificationDetails "{escaped}" ;')
+            lines.append(f'    mnf:verificationDetails "{escaped}" ;')
         # Close the last semicolon with a period
         lines[-1] = lines[-1].rstrip(" ;") + " ."
         return "\n".join(lines)

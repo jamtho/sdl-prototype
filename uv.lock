@@ -104,6 +104,34 @@ wheels = [
 ]
 
 [[package]]
+name = "manifest-toolkit"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "click" },
+    { name = "duckdb" },
+    { name = "pyarrow" },
+    { name = "rdflib" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "h3" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.0" },
+    { name = "duckdb", specifier = ">=1.0" },
+    { name = "h3", marker = "extra == 'dev'" },
+    { name = "pyarrow", specifier = ">=15.0" },
+    { name = "pytest", marker = "extra == 'dev'" },
+    { name = "rdflib", specifier = ">=7.0" },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "packaging"
 version = "26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -216,31 +244,3 @@ sdist = { url = "https://files.pythonhosted.org/packages/98/f5/18bb77b7af9526add
 wheels = [
     { url = "https://files.pythonhosted.org/packages/10/c2/6604a71269e0c1bd75656d5a001432d16f2cc5b8c057140ec797155c295e/rdflib-7.6.0-py3-none-any.whl", hash = "sha256:30c0a3ebf4c0e09215f066be7246794b6492e054e782d7ac2a34c9f70a15e0dd", size = 615416, upload-time = "2026-02-13T07:15:46.487Z" },
 ]
-
-[[package]]
-name = "sdl-toolkit"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "click" },
-    { name = "duckdb" },
-    { name = "pyarrow" },
-    { name = "rdflib" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "h3" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "click", specifier = ">=8.0" },
-    { name = "duckdb", specifier = ">=1.0" },
-    { name = "h3", marker = "extra == 'dev'" },
-    { name = "pyarrow", specifier = ">=15.0" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "rdflib", specifier = ">=7.0" },
-]
-provides-extras = ["dev"]

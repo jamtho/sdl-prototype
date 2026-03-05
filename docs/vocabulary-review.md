@@ -1,8 +1,8 @@
-# SDL Vocabulary Review: Findings, Actions, and Deferred Items
+# Manifest Vocabulary Review: Findings, Actions, and Deferred Items
 
 *2026-03-04 (2 of 2)*
 
-A fresh-eyes review of the SDL vocabulary design, conducted after the core vocabulary and both domain descriptions (AIS, Polymarket) were complete.
+A fresh-eyes review of the Manifest vocabulary design, conducted after the core vocabulary and both domain descriptions (AIS, Polymarket) were complete.
 
 ## What's strong
 
@@ -22,92 +22,92 @@ A fresh-eyes review of the SDL vocabulary design, conducted after the core vocab
 
 ### 1. String literals replaced with named individuals
 
-**Problem.** The vocabulary defined `sdl:AllowedValues` for domain enum constraints, but used freeform string literals for its own structural enumerations. This meant no typo detection, no SPARQL queryability, and no `rdfs:comment` on individual values.
+**Problem.** The vocabulary defined `mnf:AllowedValues` for domain enum constraints, but used freeform string literals for its own structural enumerations. This meant no typo detection, no SPARQL queryability, and no `rdfs:comment` on individual values.
 
 **Fix.** Introduced named individual classes and instances for seven properties:
 
 | Property | Old range | New range | Individuals |
 |----------|-----------|-----------|-------------|
-| `sdl:keyDirection` | `xsd:string` | `sdl:SortDirection` | `sdl:Ascending`, `sdl:Descending` |
-| `sdl:fileFormat` | `xsd:string` | `sdl:FileFormat` | `sdl:Parquet`, `sdl:CSV`, `sdl:ORC` |
-| `sdl:partitionGranularity` | `xsd:string` | `sdl:TemporalGranularity` | `sdl:Daily`, `sdl:Hourly`, `sdl:Monthly`, `sdl:ByValue` |
-| `sdl:levelGranularity` | `xsd:string` | `sdl:TemporalGranularity` | (shares the above) |
-| `sdl:severity` | `xsd:string` | `sdl:SeverityLevel` | `sdl:Minor`, `sdl:Moderate`, `sdl:Severe` |
-| `sdl:embeddedFormat` | `xsd:string` | `sdl:DataEncodingFormat` | `sdl:JSONEncoding`, `sdl:CSVEncoding` |
-| `sdl:verificationResult` | `xsd:string` | `sdl:VerificationResultValue` | `sdl:Pass`, `sdl:Fail`, `sdl:Partial`, `sdl:Error` |
-| `sdl:referentialIntegrity` | `xsd:string` | `sdl:ReferentialIntegrityLevel` | `sdl:StrictIntegrity`, `sdl:EventualIntegrity`, `sdl:PartialIntegrity` |
+| `mnf:keyDirection` | `xsd:string` | `mnf:SortDirection` | `mnf:Ascending`, `mnf:Descending` |
+| `mnf:fileFormat` | `xsd:string` | `mnf:FileFormat` | `mnf:Parquet`, `mnf:CSV`, `mnf:ORC` |
+| `mnf:partitionGranularity` | `xsd:string` | `mnf:TemporalGranularity` | `mnf:Daily`, `mnf:Hourly`, `mnf:Monthly`, `mnf:ByValue` |
+| `mnf:levelGranularity` | `xsd:string` | `mnf:TemporalGranularity` | (shares the above) |
+| `mnf:severity` | `xsd:string` | `mnf:SeverityLevel` | `mnf:Minor`, `mnf:Moderate`, `mnf:Severe` |
+| `mnf:embeddedFormat` | `xsd:string` | `mnf:DataEncodingFormat` | `mnf:JSONEncoding`, `mnf:CSVEncoding` |
+| `mnf:verificationResult` | `xsd:string` | `mnf:VerificationResultValue` | `mnf:Pass`, `mnf:Fail`, `mnf:Partial`, `mnf:Error` |
+| `mnf:referentialIntegrity` | `xsd:string` | `mnf:ReferentialIntegrityLevel` | `mnf:StrictIntegrity`, `mnf:EventualIntegrity`, `mnf:PartialIntegrity` |
 
-Each named individual carries an `rdfs:label` matching the old string value (e.g. `sdl:Ascending rdfs:label "ascending"`), so the Python API returns the same strings via a new `_label_or_str()` helper. Downstream code (validators, CLI) is unaffected.
+Each named individual carries an `rdfs:label` matching the old string value (e.g. `mnf:Ascending rdfs:label "ascending"`), so the Python API returns the same strings via a new `_label_or_str()` helper. Downstream code (validators, CLI) is unaffected.
 
 ### 2. Consistent `rdfs:Class` declarations
 
-**Problem.** Some subclasses were properly declared (`sdl:ForEach a rdfs:Class ; rdfs:subClassOf sdl:Constraint`) while others omitted the `a rdfs:Class` triple (`sdl:ScalarConstraint rdfs:subClassOf sdl:Constraint`).
+**Problem.** Some subclasses were properly declared (`mnf:ForEach a rdfs:Class ; rdfs:subClassOf mnf:Constraint`) while others omitted the `a rdfs:Class` triple (`mnf:ScalarConstraint rdfs:subClassOf mnf:Constraint`).
 
 **Fix.** Added `a rdfs:Class` to all subclass declarations: `ScalarConstraint`, `PairConstraint`, `SequenceConstraint`, `WindowedSequenceConstraint`, `DatasetConstraint`, `GroupedConstraint`, `CompositePartitionScheme`, `PythonValidator`, `SPARQLValidator`, `DuckDBValidator`.
 
-### 3. Added `sdl:Boolean` and `sdl:Float` physical types
+### 3. Added `mnf:Boolean` and `mnf:Float` physical types
 
-**Problem.** The physical type vocabulary had no Boolean (forcing Polymarket to use `pm:BooleanString` with `sdl:Varchar`) and no 32-bit float (only `sdl:Double`).
+**Problem.** The physical type vocabulary had no Boolean (forcing Polymarket to use `pm:BooleanString` with `mnf:Varchar`) and no 32-bit float (only `mnf:Double`).
 
-**Fix.** Added `sdl:Boolean` (label "BOOLEAN") and `sdl:Float` (label "FLOAT"). Added `sdl:Float sdl:narrowerThan sdl:Double` to the type compatibility chain. Updated the Python schema validator's Arrow type mapping to include `bool` -> `sdl:Boolean` and `float32` -> `sdl:Float`.
+**Fix.** Added `mnf:Boolean` (label "BOOLEAN") and `mnf:Float` (label "FLOAT"). Added `mnf:Float mnf:narrowerThan mnf:Double` to the type compatibility chain. Updated the Python schema validator's Arrow type mapping to include `bool` -> `mnf:Boolean` and `float32` -> `mnf:Float`.
 
-### 4. Added `sdl:rowSemantics` and `sdl:snapshotTimestamp`
+### 4. Added `mnf:rowSemantics` and `mnf:snapshotTimestamp`
 
-**Problem.** The vocabulary had `sdl:entityKey` for snapshot semantics but no general way to declare what a row represents (event vs. snapshot vs. aggregate), and no way to declare which column is the temporal dimension for snapshot datasets.
+**Problem.** The vocabulary had `mnf:entityKey` for snapshot semantics but no general way to declare what a row represents (event vs. snapshot vs. aggregate), and no way to declare which column is the temporal dimension for snapshot datasets.
 
 **Fix.** Added:
-- `sdl:rowSemantics` (domain `sdl:Dataset`, range `sdl:RowSemanticsType`)
-- `sdl:RowSemanticsType` class with `sdl:EventRow`, `sdl:SnapshotRow`, `sdl:AggregateRow`
-- `sdl:snapshotTimestamp` (domain `sdl:Dataset`, range `sdl:Column`)
+- `mnf:rowSemantics` (domain `mnf:Dataset`, range `mnf:RowSemanticsType`)
+- `mnf:RowSemanticsType` class with `mnf:EventRow`, `mnf:SnapshotRow`, `mnf:AggregateRow`
+- `mnf:snapshotTimestamp` (domain `mnf:Dataset`, range `mnf:Column`)
 
 Updated descriptions:
-- AIS `DailyBroadcasts` -> `sdl:EventRow`
-- AIS `DailyIndex` -> `sdl:AggregateRow`
-- Polymarket snapshot datasets -> `sdl:SnapshotRow` + `sdl:snapshotTimestamp` pointing to `_fetched_at`
-- Polymarket `Trades` -> `sdl:EventRow`
+- AIS `DailyBroadcasts` -> `mnf:EventRow`
+- AIS `DailyIndex` -> `mnf:AggregateRow`
+- Polymarket snapshot datasets -> `mnf:SnapshotRow` + `mnf:snapshotTimestamp` pointing to `_fetched_at`
+- Polymarket `Trades` -> `mnf:EventRow`
 
 ### 5. Added `rdfs:domain` to constraint target properties
 
-**Problem.** `sdl:appliesToDataset`, `sdl:appliesToColumn`, and `sdl:appliesToColumnGroup` had ranges declared but no domain, making them unmoored from the `sdl:Constraint` class.
+**Problem.** `mnf:appliesToDataset`, `mnf:appliesToColumn`, and `mnf:appliesToColumnGroup` had ranges declared but no domain, making them unmoored from the `mnf:Constraint` class.
 
-**Fix.** Added `rdfs:domain sdl:Constraint` to all three.
+**Fix.** Added `rdfs:domain mnf:Constraint` to all three.
 
 ### 6. Removed unused terms
 
 - Removed `owl:` prefix (was imported but never used)
-- Removed `sdl:ConstraintSignature` class (declared but never referenced)
+- Removed `mnf:ConstraintSignature` class (declared but never referenced)
 - Updated section 2 header comment to say "DuckDB conventions" instead of "Parquet logical types"
 - Added design principle 4 to the header: "Named individuals over string literals"
 
 ### 7. Updated both domain descriptions
 
-All string literal usages in `ais_description.ttl` and `polymarket_description.ttl` updated to reference the new named individuals. Both descriptions also gained `sdl:rowSemantics` and `sdl:schemaStability` declarations where missing.
+All string literal usages in `ais_description.ttl` and `polymarket_description.ttl` updated to reference the new named individuals. Both descriptions also gained `mnf:rowSemantics` and `mnf:schemaStability` declarations where missing.
 
 ### 8. Python code updated for compatibility
 
-- `graph.py`: Added `_label_or_str()` helper that resolves `rdfs:label` from named individuals, so downstream code continues to receive clean strings like `"ascending"` rather than `"sdl:Ascending"`.
-- `model.py`: `Attestation.to_turtle()` now emits `sdl:verificationResult sdl:Pass` instead of `sdl:verificationResult "pass"`.
-- `validators/schema.py`: Added `sdl:Boolean` and `sdl:Float` to the Arrow type mapping.
+- `graph.py`: Added `_label_or_str()` helper that resolves `rdfs:label` from named individuals, so downstream code continues to receive clean strings like `"ascending"` rather than `"mnf:Ascending"`.
+- `model.py`: `Attestation.to_turtle()` now emits `mnf:verificationResult mnf:Pass` instead of `mnf:verificationResult "pass"`.
+- `validators/schema.py`: Added `mnf:Boolean` and `mnf:Float` to the Arrow type mapping.
 
 ---
 
 ## Deferred items (not taken, with rationale)
 
-### `sdl:levelColumn` string vs `sdl:Column` URI mismatch
+### `mnf:levelColumn` string vs `mnf:Column` URI mismatch
 
-`sdl:partitionColumn` points to a `sdl:Column` URI, but `sdl:levelColumn` is a plain string. This exists because Hive partition keys (like `dt`, `hour`) may not correspond to data columns — they're extracted from directory paths. Fixing this requires deciding whether to create phantom Column nodes for path-only keys, or to add a parallel `sdl:levelDataColumn` property. Both options add complexity for a currently-working pattern. Deferred until a third domain exercises this.
+`mnf:partitionColumn` points to a `mnf:Column` URI, but `mnf:levelColumn` is a plain string. This exists because Hive partition keys (like `dt`, `hour`) may not correspond to data columns — they're extracted from directory paths. Fixing this requires deciding whether to create phantom Column nodes for path-only keys, or to add a parallel `mnf:levelDataColumn` property. Both options add complexity for a currently-working pattern. Deferred until a third domain exercises this.
 
-### `sdl:embeddedElementType` recursive modeling
+### `mnf:embeddedElementType` recursive modeling
 
-The inner structure of embedded JSON is described as a free-text string (`"array<{price: string, size: string}>"`). This is essentially an ad-hoc schema language inside a string literal — the very problem SDL exists to solve. A proper fix would use SDL's own Column/PhysicalType vocabulary recursively. Deferred because: (a) the ad-hoc format works for the current use cases, (b) recursive column modeling is a significant design effort, and (c) it's unclear whether the complexity is justified until there's a use case that needs machine-readable inner schemas (e.g., a validator that checks JSON structure).
+The inner structure of embedded JSON is described as a free-text string (`"array<{price: string, size: string}>"`). This is essentially an ad-hoc schema language inside a string literal — the very problem Manifest exists to solve. A proper fix would use Manifest's own Column/PhysicalType vocabulary recursively. Deferred because: (a) the ad-hoc format works for the current use cases, (b) recursive column modeling is a significant design effort, and (c) it's unclear whether the complexity is justified until there's a use case that needs machine-readable inner schemas (e.g., a validator that checks JSON structure).
 
 ### ForeignKey / SameEntity overlap
 
-The same condition_id columns appear in both `sdl:ForeignKey` (directional reference) and `sdl:SameEntity` (symmetric identity) declarations in the Polymarket description. These serve different purposes: FK declares referential integrity expectations, while SameEntity declares joinability. But in practice most FKs also participate in SameEntity. Deferred because: removing either would lose information, and making SameEntity inferrable from FK cycles would require SPARQL-level reasoning that isn't needed yet.
+The same condition_id columns appear in both `mnf:ForeignKey` (directional reference) and `mnf:SameEntity` (symmetric identity) declarations in the Polymarket description. These serve different purposes: FK declares referential integrity expectations, while SameEntity declares joinability. But in practice most FKs also participate in SameEntity. Deferred because: removing either would lose information, and making SameEntity inferrable from FK cycles would require SPARQL-level reasoning that isn't needed yet.
 
 ### SameEntity naming
 
-`sdl:SameEntity` could be confused with OWL's `owl:sameAs`. `sdl:SharedIdentifier` or `sdl:EntityIdentityMapping` would be clearer. Deferred because renaming is cosmetic and the existing name is unambiguous in context (it operates on columns, not instances).
+`mnf:SameEntity` could be confused with OWL's `owl:sameAs`. `mnf:SharedIdentifier` or `mnf:EntityIdentityMapping` would be clearer. Deferred because renaming is cosmetic and the existing name is unambiguous in context (it operates on columns, not instances).
 
 ### Verbosity / compact shorthand
 
