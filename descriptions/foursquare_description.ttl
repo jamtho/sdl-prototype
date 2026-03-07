@@ -1,0 +1,570 @@
+@prefix mnf:    <http://example.org/manifest#> .
+@prefix fsq:    <http://example.org/foursquare#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# =============================================================================
+# Foursquare Open Source Places — Dataset Description
+# =============================================================================
+#
+# Describes the Foursquare Open Source Places dataset: a periodic release of
+# ~105M POI records across 100 sharded Parquet files, plus a 1,245-row
+# category taxonomy. Released under Apache 2.0 license.
+#
+# This description exercises new Manifest patterns: sharded (non-partitioned)
+# files, struct physical types, and list-to-scalar foreign keys.
+# =============================================================================
+
+
+# =============================================================================
+# PART 1: Foursquare Domain Semantic Types
+# =============================================================================
+
+fsq:FoursquarePlaceID a mnf:SemanticType ;
+    rdfs:label "Foursquare Place ID" ;
+    rdfs:comment """24-character hexadecimal BSON ObjectId uniquely identifying
+        a place in the Foursquare database.""" ;
+    mnf:requiredPhysicalType mnf:Varchar .
+
+fsq:WGS84Latitude a mnf:SemanticType ;
+    rdfs:label "WGS84 Latitude" ;
+    rdfs:comment """WGS84 latitude of the place. Foursquare uses front-door
+        placement where possible, not building centroid.""" ;
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "degrees" ;
+    mnf:valueRange [
+        mnf:minInclusive -90.0 ;
+        mnf:maxInclusive  90.0
+    ] .
+
+fsq:WGS84Longitude a mnf:SemanticType ;
+    rdfs:label "WGS84 Longitude" ;
+    rdfs:comment """WGS84 longitude of the place. Foursquare uses front-door
+        placement where possible, not building centroid.""" ;
+    mnf:requiredPhysicalType mnf:Double ;
+    mnf:unit "degrees" ;
+    mnf:valueRange [
+        mnf:minInclusive -180.0 ;
+        mnf:maxInclusive  180.0
+    ] .
+
+fsq:ISOCountryCode a mnf:SemanticType ;
+    rdfs:label "ISO Country Code" ;
+    rdfs:comment "2-letter ISO 3166-1 alpha-2 country code." ;
+    mnf:requiredPhysicalType mnf:Varchar .
+
+fsq:CategoryID a mnf:SemanticType ;
+    rdfs:label "Foursquare Category ID" ;
+    rdfs:comment "BSON ObjectId identifying a category in the taxonomy." ;
+    mnf:requiredPhysicalType mnf:Varchar .
+
+fsq:CategoryLevel a mnf:SemanticType ;
+    rdfs:label "Category Hierarchy Level" ;
+    rdfs:comment "Depth in the category taxonomy, 1 being the broadest." ;
+    mnf:requiredPhysicalType mnf:Integer ;
+    mnf:valueRange [
+        mnf:minInclusive 1 ;
+        mnf:maxInclusive 6
+    ] .
+
+fsq:WKBGeometry a mnf:SemanticType ;
+    rdfs:label "Well-Known Binary Geometry" ;
+    rdfs:comment "WKB-encoded point geometry. CRS: WGS84 / EPSG:4326." ;
+    mnf:requiredPhysicalType mnf:Blob .
+
+fsq:DateString a mnf:SemanticType ;
+    rdfs:label "Date String" ;
+    rdfs:comment """YYYY-MM-DD formatted date. Reflects database events (creation,
+        refresh, closure timestamps) not real-world opening/closing dates.""" ;
+    mnf:requiredPhysicalType mnf:Varchar .
+
+fsq:QualityFlag a mnf:SemanticType ;
+    rdfs:label "Quality / Status Flag" ;
+    rdfs:comment """Quality or status flag for a place. Values indicate issues
+        detected by Foursquare or community moderation.""" ;
+    mnf:requiredPhysicalType mnf:VarcharList ;
+    mnf:hasAllowedValues [
+        a mnf:AllowedValues ;
+        mnf:allowedValue "closed" ;
+        mnf:allowedValue "duplicate" ;
+        mnf:allowedValue "delete" ;
+        mnf:allowedValue "privatevenue" ;
+        mnf:allowedValue "inappropriate" ;
+        mnf:allowedValue "doesnt_exist"
+    ] .
+
+fsq:CategoryIDList a mnf:SemanticType ;
+    rdfs:label "Category ID List" ;
+    rdfs:comment """List of Foursquare category IDs assigned to a place. Each
+        element is a BSON ObjectId referencing the Categories dataset.""" ;
+    mnf:requiredPhysicalType mnf:VarcharList .
+
+fsq:CategoryLabelList a mnf:SemanticType ;
+    rdfs:label "Category Label List" ;
+    rdfs:comment """List of hierarchical category breadcrumbs. Each label uses
+        ' > ' as separator (e.g. 'Dining > Restaurant > Italian').""" ;
+    mnf:requiredPhysicalType mnf:VarcharList .
+
+
+# =============================================================================
+# PART 2: Datasets and Schemas
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 2a. Places Dataset (~105M rows, 27 columns)
+# -----------------------------------------------------------------------------
+
+fsq:Places a mnf:Dataset ;
+    rdfs:label "Foursquare Open Places" ;
+    rdfs:comment """Periodic release of ~105M points of interest worldwide.
+        Data is sharded across 100 Parquet files for size management — there
+        is no hive partitioning or semantic meaning to the shard assignment.
+        Each release is a full snapshot; the same place appears across
+        releases identified by fsq_place_id.""" ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey fsq:pl_fsq_place_id ;
+    mnf:schemaStability mnf:FixedSchema ;
+
+    # --- Columns ---
+    mnf:hasColumn
+        fsq:pl_fsq_place_id ,
+        fsq:pl_name ,
+        fsq:pl_latitude ,
+        fsq:pl_longitude ,
+        fsq:pl_address ,
+        fsq:pl_locality ,
+        fsq:pl_region ,
+        fsq:pl_postcode ,
+        fsq:pl_admin_region ,
+        fsq:pl_post_town ,
+        fsq:pl_po_box ,
+        fsq:pl_country ,
+        fsq:pl_date_created ,
+        fsq:pl_date_refreshed ,
+        fsq:pl_date_closed ,
+        fsq:pl_tel ,
+        fsq:pl_website ,
+        fsq:pl_email ,
+        fsq:pl_facebook_id ,
+        fsq:pl_instagram ,
+        fsq:pl_twitter ,
+        fsq:pl_fsq_category_ids ,
+        fsq:pl_fsq_category_labels ,
+        fsq:pl_placemaker_url ,
+        fsq:pl_unresolved_flags ,
+        fsq:pl_geom ,
+        fsq:pl_bbox ;
+
+    # --- Physical layout ---
+    mnf:hasPhysicalLayout fsq:pl_layout ;
+
+    # --- Partition scheme (sharded, not partitioned) ---
+    mnf:partitionedBy fsq:pl_sharding ;
+
+    # --- Provenance ---
+    mnf:hasProvenance fsq:foursquare_provenance ;
+
+    # --- Known deficiencies ---
+    mnf:hasKnownDeficiency
+        fsq:deficiency_date_semantics ,
+        fsq:deficiency_region_format ,
+        fsq:deficiency_sparse_columns ,
+        fsq:deficiency_facebook_id_type .
+
+
+# --- Places column definitions ---
+
+fsq:pl_fsq_place_id a mnf:Column ;
+    mnf:columnName "fsq_place_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:FoursquarePlaceID ;
+    mnf:nullable false .
+
+fsq:pl_name a mnf:Column ;
+    mnf:columnName "name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_latitude a mnf:Column ;
+    mnf:columnName "latitude" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType fsq:WGS84Latitude ;
+    mnf:nullable true .
+
+fsq:pl_longitude a mnf:Column ;
+    mnf:columnName "longitude" ;
+    mnf:physicalType mnf:Double ;
+    mnf:semanticType fsq:WGS84Longitude ;
+    mnf:nullable true .
+
+fsq:pl_address a mnf:Column ;
+    mnf:columnName "address" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_locality a mnf:Column ;
+    mnf:columnName "locality" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
+    rdfs:comment "City or town name." .
+
+fsq:pl_region a mnf:Column ;
+    mnf:columnName "region" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
+    rdfs:comment """State/province/region. Format varies: abbreviated for
+        US/CA/AU/BR, full name elsewhere.""" .
+
+fsq:pl_postcode a mnf:Column ;
+    mnf:columnName "postcode" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_admin_region a mnf:Column ;
+    mnf:columnName "admin_region" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
+    rdfs:comment "Administrative region (county, district)." .
+
+fsq:pl_post_town a mnf:Column ;
+    mnf:columnName "post_town" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
+    rdfs:comment "Postal town, used primarily in UK addresses." .
+
+fsq:pl_po_box a mnf:Column ;
+    mnf:columnName "po_box" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_country a mnf:Column ;
+    mnf:columnName "country" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:ISOCountryCode ;
+    mnf:nullable true .
+
+fsq:pl_date_created a mnf:Column ;
+    mnf:columnName "date_created" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:DateString ;
+    mnf:nullable true ;
+    rdfs:comment """Date the place was created in the Foursquare database.
+        Does NOT represent the real-world opening date of the venue.""" .
+
+fsq:pl_date_refreshed a mnf:Column ;
+    mnf:columnName "date_refreshed" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:DateString ;
+    mnf:nullable true ;
+    rdfs:comment "Date the place record was last refreshed in the database." .
+
+fsq:pl_date_closed a mnf:Column ;
+    mnf:columnName "date_closed" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:DateString ;
+    mnf:nullable true ;
+    rdfs:comment """Date the place was marked as closed. Does NOT necessarily
+        represent the actual closure date of the venue.""" .
+
+fsq:pl_tel a mnf:Column ;
+    mnf:columnName "tel" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_website a mnf:Column ;
+    mnf:columnName "website" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_email a mnf:Column ;
+    mnf:columnName "email" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_facebook_id a mnf:Column ;
+    mnf:columnName "facebook_id" ;
+    mnf:physicalType mnf:BigInt ;
+    mnf:nullable true ;
+    rdfs:comment """Facebook page ID. Stored as BIGINT in Parquet despite
+        Foursquare documentation describing it as String.""" .
+
+fsq:pl_instagram a mnf:Column ;
+    mnf:columnName "instagram" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_twitter a mnf:Column ;
+    mnf:columnName "twitter" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:pl_fsq_category_ids a mnf:Column ;
+    mnf:columnName "fsq_category_ids" ;
+    mnf:physicalType mnf:VarcharList ;
+    mnf:semanticType fsq:CategoryIDList ;
+    mnf:nullable true ;
+    rdfs:comment """List of category IDs. Each element references
+        category_id in the Categories dataset. Use UNNEST for joins.""" .
+
+fsq:pl_fsq_category_labels a mnf:Column ;
+    mnf:columnName "fsq_category_labels" ;
+    mnf:physicalType mnf:VarcharList ;
+    mnf:semanticType fsq:CategoryLabelList ;
+    mnf:nullable true .
+
+fsq:pl_placemaker_url a mnf:Column ;
+    mnf:columnName "placemaker_url" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
+    rdfs:comment "URL to the Foursquare Placemaker page for this place." .
+
+fsq:pl_unresolved_flags a mnf:Column ;
+    mnf:columnName "unresolved_flags" ;
+    mnf:physicalType mnf:VarcharList ;
+    mnf:semanticType fsq:QualityFlag ;
+    mnf:nullable true ;
+    rdfs:comment "Quality/status flags. Mostly NULL across the dataset." .
+
+fsq:pl_geom a mnf:Column ;
+    mnf:columnName "geom" ;
+    mnf:physicalType mnf:Blob ;
+    mnf:semanticType fsq:WKBGeometry ;
+    mnf:nullable true .
+
+fsq:pl_bbox a mnf:Column ;
+    mnf:columnName "bbox" ;
+    mnf:physicalType mnf:Struct ;
+    mnf:nullable true ;
+    rdfs:comment """Bounding box as a Parquet STRUCT with fields: xmin, ymin,
+        xmax, ymax (all DOUBLE). Mostly NULL across the dataset.""" .
+
+
+# --- Physical layout ---
+
+fsq:pl_layout a mnf:PhysicalLayout ;
+    mnf:fileFormat mnf:Parquet .
+    # No row ordering declared — sharded files have no guaranteed order.
+
+
+# --- Sharding scheme ---
+
+fsq:pl_sharding a mnf:PartitionScheme ;
+    mnf:pathTemplate "places/places-{shard}.zstd.parquet" ;
+    rdfs:comment """100 sharded files. Sharding is for file-size management only;
+        there is no hive partitioning or semantic meaning to shard assignment.
+        No partition column — the shard number is an arbitrary split key.""" .
+
+
+# -----------------------------------------------------------------------------
+# 2b. Categories Dataset (1,245 rows, 16 columns)
+# -----------------------------------------------------------------------------
+
+fsq:Categories a mnf:Dataset ;
+    rdfs:label "Foursquare Categories" ;
+    rdfs:comment """Category taxonomy with 1,245 entries across up to 6 hierarchy
+        levels. Reference/lookup table for the fsq_category_ids column in
+        the Places dataset. Denormalized: each row includes its full ancestry
+        via level1–level6 columns.""" ;
+    mnf:rowSemantics mnf:SnapshotRow ;
+    mnf:entityKey fsq:cat_category_id ;
+    mnf:schemaStability mnf:FixedSchema ;
+
+    # --- Columns ---
+    mnf:hasColumn
+        fsq:cat_category_id ,
+        fsq:cat_category_level ,
+        fsq:cat_category_name ,
+        fsq:cat_category_label ,
+        fsq:cat_level1_category_id ,
+        fsq:cat_level1_category_name ,
+        fsq:cat_level2_category_id ,
+        fsq:cat_level2_category_name ,
+        fsq:cat_level3_category_id ,
+        fsq:cat_level3_category_name ,
+        fsq:cat_level4_category_id ,
+        fsq:cat_level4_category_name ,
+        fsq:cat_level5_category_id ,
+        fsq:cat_level5_category_name ,
+        fsq:cat_level6_category_id ,
+        fsq:cat_level6_category_name ;
+
+    # --- Physical layout ---
+    mnf:hasPhysicalLayout [
+        a mnf:PhysicalLayout ;
+        mnf:fileFormat mnf:Parquet
+    ] ;
+
+    # --- Path ---
+    mnf:partitionedBy fsq:cat_path .
+
+
+# --- Categories column definitions ---
+
+fsq:cat_category_id a mnf:Column ;
+    mnf:columnName "category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable false .
+
+fsq:cat_category_level a mnf:Column ;
+    mnf:columnName "category_level" ;
+    mnf:physicalType mnf:Integer ;
+    mnf:semanticType fsq:CategoryLevel ;
+    mnf:nullable false .
+
+fsq:cat_category_name a mnf:Column ;
+    mnf:columnName "category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable false ;
+    rdfs:comment "Short category name (e.g. 'Italian Restaurant')." .
+
+fsq:cat_category_label a mnf:Column ;
+    mnf:columnName "category_label" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable false ;
+    rdfs:comment """Full hierarchical breadcrumb label using ' > ' separator
+        (e.g. 'Dining and Drinking > Restaurant > Italian Restaurant').""" .
+
+fsq:cat_level1_category_id a mnf:Column ;
+    mnf:columnName "level1_category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable true .
+
+fsq:cat_level1_category_name a mnf:Column ;
+    mnf:columnName "level1_category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:cat_level2_category_id a mnf:Column ;
+    mnf:columnName "level2_category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable true .
+
+fsq:cat_level2_category_name a mnf:Column ;
+    mnf:columnName "level2_category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:cat_level3_category_id a mnf:Column ;
+    mnf:columnName "level3_category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable true .
+
+fsq:cat_level3_category_name a mnf:Column ;
+    mnf:columnName "level3_category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:cat_level4_category_id a mnf:Column ;
+    mnf:columnName "level4_category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable true .
+
+fsq:cat_level4_category_name a mnf:Column ;
+    mnf:columnName "level4_category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:cat_level5_category_id a mnf:Column ;
+    mnf:columnName "level5_category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable true .
+
+fsq:cat_level5_category_name a mnf:Column ;
+    mnf:columnName "level5_category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true .
+
+fsq:cat_level6_category_id a mnf:Column ;
+    mnf:columnName "level6_category_id" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:semanticType fsq:CategoryID ;
+    mnf:nullable true ;
+    rdfs:comment "NULL for categories shallower than level 6." .
+
+fsq:cat_level6_category_name a mnf:Column ;
+    mnf:columnName "level6_category_name" ;
+    mnf:physicalType mnf:Varchar ;
+    mnf:nullable true ;
+    rdfs:comment "NULL for categories shallower than level 6." .
+
+
+# --- Categories path ---
+
+fsq:cat_path a mnf:PartitionScheme ;
+    mnf:pathTemplate "categories/categories.zstd.parquet" ;
+    rdfs:comment """Single file — the path template is a literal with no
+        placeholders. Works with glob matching (trivially matches itself).""" .
+
+
+# =============================================================================
+# PART 3: Foreign Key Relationships
+# =============================================================================
+
+fsq:fk_places_to_categories a mnf:ForeignKey ;
+    rdfs:label "Places -> Categories (via fsq_category_ids)" ;
+    mnf:foreignKeyFrom fsq:pl_fsq_category_ids ;
+    mnf:foreignKeyTo fsq:cat_category_id ;
+    mnf:referentialIntegrity mnf:StrictIntegrity ;
+    rdfs:comment """List-to-scalar foreign key: each element of the
+        fsq_category_ids list references a single category_id. Use UNNEST
+        to join: SELECT ... FROM places, UNNEST(fsq_category_ids) AS t(cid)
+        JOIN categories ON t.cid = categories.category_id.""" .
+
+
+# =============================================================================
+# PART 4: Provenance and Known Deficiencies
+# =============================================================================
+
+fsq:foursquare_provenance a mnf:Provenance ;
+    mnf:source <https://opensource.foursquare.com/os-places/> ;
+    mnf:sourceDescription """Foursquare Open Source Places. Periodic release of
+        global POI data under Apache 2.0 license. Sourced from Foursquare's
+        proprietary places database built from user check-ins, merchant
+        claims, and automated data pipelines.""" .
+
+
+fsq:deficiency_date_semantics a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Date fields (date_created, date_refreshed,
+        date_closed) reflect database events, not real-world events.
+        date_created is when the place entered the Foursquare database,
+        not when the venue opened. date_closed is when it was flagged
+        closed, not when it actually ceased operations.""" ;
+    mnf:impact """Cannot use date fields for real-world timeline analysis
+        (e.g. 'when did this restaurant open?'). Only useful for tracking
+        data freshness and database activity.""" ;
+    mnf:severity mnf:Moderate .
+
+fsq:deficiency_region_format a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """Region formatting is inconsistent across
+        countries. US, Canada, Australia, and Brazil use abbreviated
+        state/province codes (e.g. 'CA', 'ON', 'NSW'). All other
+        countries use full region names.""" ;
+    mnf:impact """Region-based filtering or grouping requires country-aware
+        normalization. Cannot reliably compare regions across countries
+        without a lookup table.""" ;
+    mnf:severity mnf:Minor .
+
+fsq:deficiency_sparse_columns a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """The bbox and unresolved_flags columns are
+        mostly NULL across the dataset. bbox is only populated for places
+        with area geometry rather than point geometry.""" ;
+    mnf:impact """These columns provide little value for most analyses.
+        Filtering on them will yield very sparse results.""" ;
+    mnf:severity mnf:Minor .
+
+fsq:deficiency_facebook_id_type a mnf:KnownDeficiency ;
+    mnf:deficiencyDescription """facebook_id is stored as BIGINT in the Parquet
+        files, but Foursquare's documentation describes it as String.
+        The actual data contains integer values that fit in BIGINT.""" ;
+    mnf:impact """Queries treating facebook_id as a string (e.g. pattern
+        matching) will need an explicit CAST. Join keys against external
+        Facebook data may need type alignment.""" ;
+    mnf:severity mnf:Minor .

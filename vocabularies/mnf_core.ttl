@@ -135,6 +135,7 @@ mnf:Blob          a mnf:PhysicalType ; rdfs:label "BLOB" .
 mnf:IntegerList   a mnf:PhysicalType ; rdfs:label "INTEGER[]" .
 mnf:DoubleList    a mnf:PhysicalType ; rdfs:label "DOUBLE[]" .
 mnf:VarcharList   a mnf:PhysicalType ; rdfs:label "VARCHAR[]" .
+mnf:Struct        a mnf:PhysicalType ; rdfs:label "STRUCT" .
 
 # Type compatibility (e.g. Integer is narrower than BigInt)
 mnf:narrowerThan a rdf:Property ;

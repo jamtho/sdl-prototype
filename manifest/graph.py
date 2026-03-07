@@ -22,6 +22,7 @@ from manifest.model import (
 MNF = Namespace("http://example.org/manifest#")
 AIS = Namespace("http://example.org/ais#")
 PM = Namespace("http://example.org/polymarket#")
+FSQ = Namespace("http://example.org/foursquare#")
 RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 RDFS = Namespace("http://www.w3.org/2000/01/rdf-schema#")
 XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
@@ -33,7 +34,7 @@ def _str(node: Node | None) -> str:
         return ""
     s = str(node)
     for prefix, ns in [("mnf:", str(MNF)), ("ais:", str(AIS)),
-                        ("pm:", str(PM)),
+                        ("pm:", str(PM)), ("fsq:", str(FSQ)),
                         ("rdfs:", str(RDFS)), ("xsd:", str(XSD))]:
         if s.startswith(ns):
             return prefix + s[len(ns):]
@@ -92,6 +93,7 @@ class ManifestGraph:
         self.g.bind("mnf", MNF)
         self.g.bind("ais", AIS)
         self.g.bind("pm", PM)
+        self.g.bind("fsq", FSQ)
         self.g.bind("rdfs", RDFS)
         self.g.bind("xsd", XSD)
 
@@ -370,6 +372,7 @@ class ManifestGraph:
             "mnf": MNF,
             "ais": AIS,
             "pm": PM,
+            "fsq": FSQ,
             "rdfs": RDFS,
             "xsd": XSD,
         }
